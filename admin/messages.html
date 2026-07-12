@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage User Roles - Admin Portal</title>
+  <title>Manage Inquiries & Messages - Admin Portal</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -33,11 +33,10 @@
       </div>
       <ul class="sidebar-menu">
         <li><a href="/admin/index.html"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-        <li><a href="/admin/books.html"><i class="fas fa-book"></i> <span>Books Catalog</span></a></li>
+        <li><a href="/admin/books.html"><i class="fas fa-book"></i> <span>Books Management</span></a></li>
         <li><a href="/admin/categories.html"><i class="fas fa-tags"></i> <span>Categories</span></a></li>
-        <li class="active"><a href="/admin/users.html"><i class="fas fa-users-cog"></i> <span>User Roles</span></a></li>
-        <li><a href="/admin/reports.html"><i class="fas fa-file-invoice"></i> <span>Reports & Backup</span></a></li>
-        <li><a href="/admin/settings.html"><i class="fas fa-cog"></i> <span>System Settings</span></a></li>
+        <li class="active"><a href="/admin/messages.html"><i class="fas fa-envelope"></i> <span>Messages</span></a></li>
+        <li><a href="/admin/settings.html"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
       </ul>
       <div class="sidebar-footer">
         <a href="javascript:void(0)" onclick="window.handleLogout()"><i class="fas fa-sign-out-alt"></i> <span>Log Out</span></a>
@@ -50,19 +49,19 @@
       <!-- Top header bar -->
       <div class="admin-header">
         <div class="admin-header-title">
-          <h2>User Accounts & Role Management</h2>
-          <p>Configure user roles and manage library access privileges</p>
+          <h2>Contact Form Inquiries</h2>
+          <p>Read, answer, and clean up public message logs</p>
         </div>
         <div class="admin-header-actions">
           <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme"><i class="fas fa-moon"></i></button>
         </div>
       </div>
 
-      <!-- USERS LIST TABLE -->
+      <!-- Messages Catalog Grid/Table -->
       <div class="table-card">
         <div class="table-header-bar">
           <div class="table-header-title">
-            <h3>Registered Academy Scholars & Guests</h3>
+            <h3>Inbox Messages</h3>
           </div>
         </div>
         
@@ -71,15 +70,15 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Full Name</th>
+                <th>Sender Name</th>
                 <th>Email Address</th>
-                <th>Phone Number</th>
-                <th>Access Role</th>
-                <th>Registered Date</th>
+                <th>Subject</th>
+                <th>Message Content</th>
+                <th>Date Received</th>
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="admin-users-table-body">
+            <tbody id="admin-messages-table-body">
               <!-- Populated dynamically by admin.js -->
             </tbody>
           </table>

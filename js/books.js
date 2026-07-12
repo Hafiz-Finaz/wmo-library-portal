@@ -3,7 +3,7 @@
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // If we are on the homepage, load sliders
+  // If we are on the homepage, load grids and statistics
   if (document.getElementById("latest-books-grid")) {
     loadHomeGrids();
   }
@@ -19,30 +19,17 @@ document.addEventListener("DOMContentLoaded", () => {
       closeBtn.addEventListener("click", () => closeModal(modal.id));
     }
   });
-
-  // Bind borrow confirmation action
-  const confirmBorrowBtn = document.getElementById("confirm-borrow-btn");
-  if (confirmBorrowBtn) {
-    confirmBorrowBtn.addEventListener("click", executeBorrowBook);
-  }
-
-  // Bind review submit form
-  const reviewForm = document.getElementById("submit-review-form");
-  if (reviewForm) {
-    reviewForm.addEventListener("submit", executeSubmitReview);
-  }
 });
 
 // Load Home Page Grids
 async function loadHomeGrids() {
   const latestGrid = document.getElementById("latest-books-grid");
-  const popularGrid = document.getElementById("popular-books-grid");
+  const featuredGrid = document.getElementById("featured-books-grid");
   const categoriesGrid = document.getElementById("home-categories-grid");
-  const announcementsList = document.getElementById("announcements-list");
 
   // Show skeletons
   showGridSkeletons(latestGrid, 4);
-  showGridSkeletons(popularGrid, 4);
+  showGridSkeletons(featuredGrid, 4);
 
   // Fetch Categories
   const categories = await window.supabaseDb.getCategories();
@@ -56,45 +43,53 @@ async function loadHomeGrids() {
   }
 
   // Fetch Books
-  const booksRes = await window.supabaseDb.getBooks({ limit: 8, sortBy: 'created_at', order: 'desc' });
-  const books = booksRes.books;
+  const booksRes = await window.supabaseDb.getBooks({ limit: 100 });
+  const allBooks = booksRes.books || [];
 
+  // Update homepage statistics
+  let totalViews = 0;
+  let totalDownloads = 0;
+  allBooks.forEach(b => {
+    totalViews += (b.views || 0);
+    totalDownloads += (b.downloads || 0);
+  });
+
+  const bCountEl = document.getElementById("stat-total-books");
+  const cCountEl = document.getElementById("stat-total-categories");
+  const vCountEl = document.getElementById("stat-total-views");
+  const dCountEl = document.getElementById("stat-total-downloads");
+
+  if (bCountEl) bCountEl.textContent = allBooks.length;
+  if (cCountEl) cCountEl.textContent = categories.length;
+  if (vCountEl) vCountEl.textContent = totalViews;
+  if (dCountEl) dCountEl.textContent = totalDownloads;
+
+  // Filter latest books (sorted by created_at desc)
+  const latestBooks = [...allBooks].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   if (latestGrid) {
-    if (books.length > 0) {
-      latestGrid.innerHTML = books.slice(0, 4).map(book => createBookCardHTML(book)).join('');
+    if (latestBooks.length > 0) {
+      latestGrid.innerHTML = latestBooks.slice(0, 4).map(book => createBookCardHTML(book)).join('');
       bindBookCardEvents(latestGrid);
     } else {
       latestGrid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">No books available.</p>`;
     }
   }
 
-  if (popularGrid) {
-    // Sort by downloads as popular indicator
-    const popularBooks = [...books].sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
-    if (popularBooks.length > 0) {
-      popularGrid.innerHTML = popularBooks.slice(0, 4).map(book => createBookCardHTML(book)).join('');
-      bindBookCardEvents(popularGrid);
+  // Filter featured books (where featured is true)
+  const featuredBooks = allBooks.filter(b => b.featured === true);
+  if (featuredGrid) {
+    if (featuredBooks.length > 0) {
+      featuredGrid.innerHTML = featuredBooks.slice(0, 4).map(book => createBookCardHTML(book)).join('');
+      bindBookCardEvents(featuredGrid);
     } else {
-      popularGrid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">No books available.</p>`;
-    }
-  }
-
-  // Fetch Announcements
-  const announcements = await window.supabaseDb.getAnnouncements(3);
-  if (announcementsList) {
-    if (announcements.length > 0) {
-      announcementsList.innerHTML = announcements.map(ann => `
-        <div class="glass-card announcement-item" style="display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap;">
-          ${ann.image ? `<img src="${ann.image}" alt="${ann.title}" style="width:120px;height:120px;object-fit:cover;border-radius:10px;">` : ''}
-          <div style="flex:1;min-width:200px;">
-            <span style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">${new Date(ann.created_at).toLocaleDateString()}</span>
-            <h3 style="font-size:1.25rem;margin:5px 0 10px 0;font-weight:700;">${ann.title}</h3>
-            <p style="color:var(--text-secondary);font-size:0.95rem;">${ann.content}</p>
-          </div>
-        </div>
-      `).join('');
-    } else {
-      announcementsList.innerHTML = `<p style="text-align:center;color:var(--text-secondary);">No announcements at this time.</p>`;
+      // Fallback to highest views if none explicitly featured
+      const fallbackFeatured = [...allBooks].sort((a, b) => (b.views || 0) - (a.views || 0));
+      if (fallbackFeatured.length > 0) {
+        featuredGrid.innerHTML = fallbackFeatured.slice(0, 4).map(book => createBookCardHTML(book)).join('');
+        bindBookCardEvents(featuredGrid);
+      } else {
+        featuredGrid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">No books available.</p>`;
+      }
     }
   }
 }
@@ -114,24 +109,16 @@ function showGridSkeletons(grid, count) {
 
 // Generate Single Card HTML
 function createBookCardHTML(book) {
-  const isAvailable = book.available_quantity > 0 && book.status === 'available';
-  const badgeClass = isAvailable ? 'badge-available' : 'badge-out';
-  const badgeText = isAvailable ? 'Available' : 'Out of Stock';
-  
   return `
     <div class="glass-card book-card" data-id="${book.id}">
       <div class="book-cover-wrapper">
-        <span class="book-badge ${badgeClass}">${badgeText}</span>
-        <button class="book-wishlist-btn" onclick="handleCardWishlistToggle(event, '${book.id}')">
-          <i class="far fa-heart"></i>
-        </button>
         <img src="${book.cover_image || '/assets/images/book-placeholder.jpg'}" alt="${book.title}" class="book-cover-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 150%22 fill=%22%23ccc%22><rect width=%22100%22 height=%22150%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2212%22>No Cover</text></svg>'">
       </div>
       <div class="book-meta">${book.categories?.category_name || 'Book'}</div>
       <a href="javascript:void(0)" class="book-title-link trigger-details">${book.title}</a>
       <div class="book-author">${book.author}</div>
       <div class="book-footer">
-        <span class="book-rating"><i class="fas fa-star"></i> ${(book.rating || 4.5).toFixed(1)}</span>
+        <span style="font-size:0.8rem;color:var(--text-muted);font-weight:600;"><i class="fas fa-eye"></i> ${book.views || 0}</span>
         <span style="font-size:0.8rem;color:var(--text-muted);font-weight:600;"><i class="fas fa-download"></i> ${book.downloads || 0}</span>
       </div>
     </div>
@@ -142,56 +129,16 @@ function createBookCardHTML(book) {
 function bindBookCardEvents(container) {
   const cards = container.querySelectorAll(".book-card");
   cards.forEach(card => {
-    // Open details modal when clicking cover or title
     const trigger = card.querySelector(".trigger-details");
     const cover = card.querySelector(".book-cover-wrapper");
     
-    const openAction = (e) => {
-      if (e.target.closest('.book-wishlist-btn')) return; // ignore wishlist clicks
+    const openAction = () => {
       openBookDetails(card.dataset.id);
     };
 
     if (trigger) trigger.addEventListener("click", openAction);
     if (cover) cover.addEventListener("click", openAction);
-
-    // Sync wishlist icon state
-    syncWishlistIcon(card.dataset.id, card.querySelector(".book-wishlist-btn i"));
   });
-}
-
-// Sync single wishlist icon state
-async function syncWishlistIcon(bookId, iconEl) {
-  const user = await window.supabaseAuth.getCurrentUser();
-  if (user && iconEl) {
-    const active = await window.supabaseDb.isWishlisted(user.id, bookId);
-    if (active) {
-      iconEl.className = "fas fa-heart";
-    } else {
-      iconEl.className = "far fa-heart";
-    }
-  }
-}
-
-// Trigger Wishlist Click from Card
-async function handleCardWishlistToggle(e, bookId) {
-  e.stopPropagation();
-  const user = await window.supabaseAuth.getCurrentUser();
-  if (!user) {
-    showToast("Please log in to add books to your wishlist", "warning");
-    return;
-  }
-
-  const icon = e.currentTarget.querySelector("i");
-  const res = await window.supabaseDb.toggleWishlist(user.id, bookId);
-  if (res.success) {
-    if (res.action === 'added') {
-      icon.className = "fas fa-heart";
-      showToast("Book added to wishlist!", "success");
-    } else {
-      icon.className = "far fa-heart";
-      showToast("Book removed from wishlist", "info");
-    }
-  }
 }
 
 // --- BOOK DETAILS MODAL ---
@@ -209,78 +156,43 @@ async function openBookDetails(bookId) {
 
   // Populate info
   document.getElementById("modal-book-title").textContent = book.title;
+  document.getElementById("modal-book-subtitle").textContent = book.subtitle || '';
   document.getElementById("modal-book-author").textContent = book.author;
   document.getElementById("modal-book-desc").textContent = book.description || 'No description available.';
   document.getElementById("modal-book-publisher").textContent = book.publisher || 'Unknown';
   document.getElementById("modal-book-year").textContent = book.publication_year || 'Unknown';
   document.getElementById("modal-book-language").textContent = book.language || 'English';
   document.getElementById("modal-book-isbn").textContent = book.isbn || 'N/A';
-  document.getElementById("modal-book-shelf").textContent = book.shelf_location || 'Digital Shelf';
+  document.getElementById("modal-book-edition").textContent = book.edition || '1st Edition';
+  document.getElementById("modal-book-pages").textContent = book.pages || 'N/A';
+  document.getElementById("modal-book-size").textContent = book.file_size || 'N/A';
+  document.getElementById("modal-book-views").textContent = book.views || 0;
+  document.getElementById("modal-book-downloads").textContent = book.downloads || 0;
   document.getElementById("modal-book-category").textContent = book.categories?.category_name || 'General';
   document.getElementById("modal-book-cover").src = book.cover_image || '/assets/images/book-placeholder.jpg';
 
-  // Available quantities
-  const qtyEl = document.getElementById("modal-book-qty");
-  if (qtyEl) {
-    qtyEl.textContent = `${book.available_quantity} / ${book.total_quantity}`;
-  }
-
-  // QR Code Generation
-  const qrEl = document.getElementById("modal-book-qrcode");
-  if (qrEl) {
-    qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/books.html?id=' + book.id)}`;
+  // Render tags
+  const tagsContainer = document.getElementById("modal-book-tags-container");
+  if (tagsContainer) {
+    tagsContainer.innerHTML = '';
+    if (book.tags) {
+      const tags = book.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+      tagsContainer.innerHTML = tags.map(tag => `
+        <span class="section-badge" style="background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);margin:0;font-size:0.75rem;padding:4px 8px;">#${tag}</span>
+      `).join('');
+    }
   }
 
   // Setup Actions
   setupBookDetailsActions(book);
-
-  // Load reviews list
-  loadReviews(bookId);
 
   // Load related books
   loadRelated(book.category_id, book.id);
 }
 
 function setupBookDetailsActions(book) {
-  const borrowBtn = document.getElementById("modal-borrow-btn");
   const readBtn = document.getElementById("modal-read-btn");
   const downloadBtn = document.getElementById("modal-download-btn");
-  const favoriteBtn = document.getElementById("modal-favorite-btn");
-
-  const isAvailable = book.available_quantity > 0 && book.status === 'available';
-
-  // Wishlist Action Sync
-  if (favoriteBtn) {
-    syncWishlistIcon(book.id, favoriteBtn.querySelector("i"));
-    favoriteBtn.onclick = async () => {
-      const user = await window.supabaseAuth.getCurrentUser();
-      if (!user) {
-        showToast("Please log in first", "warning");
-        return;
-      }
-      const icon = favoriteBtn.querySelector("i");
-      const res = await window.supabaseDb.toggleWishlist(user.id, book.id);
-      if (res.success) {
-        icon.className = res.action === 'added' ? 'fas fa-heart' : 'far fa-heart';
-        showToast(res.action === 'added' ? 'Added to favorites!' : 'Removed from favorites', 'info');
-      }
-    };
-  }
-
-  // Borrow button setup
-  if (borrowBtn) {
-    if (isAvailable) {
-      borrowBtn.disabled = false;
-      borrowBtn.classList.remove("btn-secondary");
-      borrowBtn.classList.add("btn-primary");
-      borrowBtn.onclick = () => openBorrowConfirmModal(book);
-    } else {
-      borrowBtn.disabled = true;
-      borrowBtn.classList.remove("btn-primary");
-      borrowBtn.classList.add("btn-secondary");
-      borrowBtn.textContent = "Unavailable";
-    }
-  }
 
   // PDF Preview button setup
   if (readBtn) {
@@ -303,46 +215,8 @@ function setupBookDetailsActions(book) {
   }
 }
 
-// Open borrow confirmation modal
-function openBorrowConfirmModal(book) {
-  closeModal("book-details-modal");
-  const modal = document.getElementById("borrow-confirm-modal");
-  if (!modal) return;
-  modal.classList.add("open");
-
-  document.getElementById("borrow-confirm-title").textContent = book.title;
-  document.getElementById("borrow-confirm-author").textContent = book.author;
-  
-  // Set calculated return date (14 days default)
-  const returnDate = new Date();
-  returnDate.setDate(returnDate.getDate() + 14);
-  document.getElementById("borrow-confirm-date").textContent = returnDate.toLocaleDateString();
-}
-
-// Execute borrow request
-async function executeBorrowBook() {
-  const user = await window.supabaseAuth.getCurrentUser();
-  if (!user) {
-    showToast("Please log in to borrow books", "warning");
-    closeModal("borrow-confirm-modal");
-    return;
-  }
-
-  const submitBtn = document.getElementById("confirm-borrow-btn");
-  submitBtn.disabled = true;
-
-  const res = await window.supabaseDb.requestBorrow(currentSelectedBookId, user.id);
-  if (res.success) {
-    showToast("Request submitted successfully! Awaiting library approval.", "success");
-    closeModal("borrow-confirm-modal");
-  } else {
-    showToast(res.error, "error");
-  }
-  submitBtn.disabled = false;
-}
-
 // PDF Reader Inside Modal
-function openPDFReader(title, pdfUrl, bookId) {
+async function openPDFReader(title, pdfUrl, bookId) {
   closeModal("book-details-modal");
   const modal = document.getElementById("pdf-reader-modal");
   if (!modal) return;
@@ -350,7 +224,7 @@ function openPDFReader(title, pdfUrl, bookId) {
 
   document.getElementById("reader-title").textContent = title;
   
-  // Setup iframe
+  // Setup iframe/embed
   const iframeContainer = document.getElementById("pdf-frame-container");
   iframeContainer.innerHTML = `
     <embed src="${pdfUrl}#toolbar=0" type="application/pdf" width="100%" height="600px" />
@@ -358,16 +232,15 @@ function openPDFReader(title, pdfUrl, bookId) {
 
   // Reading progress tracker (simulate progress on scroll)
   const readerProgress = document.getElementById("reader-progress-bar");
-  const readerBody = iframeContainer.querySelector('embed');
-  if (readerProgress) readerProgress.style.width = "0%";
+  if (readerProgress) readerProgress.style.width = "100%";
 
-  // Track download metrics
-  window.supabaseDb.incrementDownload(bookId);
+  // Track view metrics
+  await window.supabaseDb.incrementBookViews(bookId);
 }
 
 // Download PDF
 async function triggerPDFDownload(book) {
-  window.supabaseDb.incrementDownload(book.id);
+  await window.supabaseDb.incrementBookDownloads(book.id);
   
   // Direct trigger download link
   const link = document.createElement("a");
@@ -378,63 +251,12 @@ async function triggerPDFDownload(book) {
   link.click();
   document.body.removeChild(link);
   showToast("Download started!", "success");
-}
-
-// Load Reviews inside details modal
-async function loadReviews(bookId) {
-  const container = document.getElementById("modal-reviews-list");
-  if (!container) return;
-  container.innerHTML = `<p style="text-align:center;color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Loading reviews...</p>`;
-
-  const reviews = await window.supabaseDb.getBookReviews(bookId);
-  if (reviews.length > 0) {
-    container.innerHTML = reviews.map(rev => `
-      <div style="border-bottom:1px solid var(--border-color);padding:15px 0;">
-        <div style="display:flex;justify-content:between;align-items:center;margin-bottom:8px;">
-          <strong style="font-weight:600;font-size:0.95rem;">${rev.users?.full_name || 'Anonymous Reader'}</strong>
-          <span style="color:var(--warning);font-size:0.85rem;margin-left:auto;">
-            ${Array(rev.rating).fill('<i class="fas fa-star"></i>').join('')}
-            ${Array(5 - rev.rating).fill('<i class="far fa-star"></i>').join('')}
-          </span>
-        </div>
-        <p style="color:var(--text-secondary);font-size:0.9rem;">${rev.review_text || 'No comments left.'}</p>
-        <span style="font-size:0.75rem;color:var(--text-muted);">${new Date(rev.created_at).toLocaleDateString()}</span>
-      </div>
-    `).join('');
-  } else {
-    container.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:0.95rem;">No reviews yet. Be the first to review this book!</p>`;
+  
+  // Update UI counter in background
+  const viewsEl = document.getElementById("modal-book-downloads");
+  if (viewsEl) {
+    viewsEl.textContent = (book.downloads || 0) + 1;
   }
-}
-
-// Submit Review Action
-async function executeSubmitReview(e) {
-  e.preventDefault();
-  const user = await window.supabaseAuth.getCurrentUser();
-  if (!user) {
-    showToast("Please log in to post reviews", "warning");
-    return;
-  }
-
-  const rating = parseInt(document.getElementById("review-rating").value);
-  const text = document.getElementById("review-text").value.trim();
-  const submitBtn = e.target.querySelector("button[type='submit']");
-
-  if (!rating) {
-    showToast("Please select a rating star", "warning");
-    return;
-  }
-
-  submitBtn.disabled = true;
-
-  const res = await window.supabaseDb.addReview(currentSelectedBookId, user.id, rating, text);
-  if (res.success) {
-    showToast("Review submitted successfully!", "success");
-    e.target.reset();
-    loadReviews(currentSelectedBookId);
-  } else {
-    showToast(res.error, "error");
-  }
-  submitBtn.disabled = false;
 }
 
 // Related Books Loading
@@ -468,10 +290,18 @@ function closeModal(modalId) {
     if (modalId === 'pdf-reader-modal') {
       const frame = document.getElementById("pdf-frame-container");
       if (frame) frame.innerHTML = '';
+      
+      // Refresh grids to update view counts
+      if (document.getElementById("latest-books-grid")) {
+        loadHomeGrids();
+      }
+      // If books.html is open, trigger search reload
+      if (window.loadCatalog) {
+        window.loadCatalog();
+      }
     }
   }
 }
 
 window.openBookDetails = openBookDetails;
 window.closeModal = closeModal;
-window.handleCardWishlistToggle = handleCardWishlistToggle;

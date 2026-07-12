@@ -156,20 +156,23 @@
 
   <!-- BOOK DETAILS MODAL -->
   <div class="modal-overlay" id="book-details-modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 750px;">
       <button class="modal-close">&times;</button>
-      <div style="display:grid;grid-template-columns:1fr 2fr;gap:25px;margin-bottom:25px;">
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:25px;margin-bottom:25px;flex-wrap:wrap;">
         <img id="modal-book-cover" src="" alt="Book Cover" style="width:100%;height:auto;border-radius:10px;box-shadow:var(--card-shadow);object-fit:cover;">
         <div>
           <span class="section-badge" id="modal-book-category">Category</span>
-          <h2 id="modal-book-title" style="font-size:1.6rem;font-weight:800;margin:5px 0 10px 0;">Book Title</h2>
+          <h2 id="modal-book-title" style="font-size:1.6rem;font-weight:800;margin:5px 0 5px 0;">Book Title</h2>
+          <h4 id="modal-book-subtitle" style="font-size:1rem;color:var(--text-muted);font-weight:500;margin-bottom:10px;font-style:italic;">Subtitle</h4>
           <p style="font-size:1rem;color:var(--text-secondary);margin-bottom:15px;">by <strong id="modal-book-author" style="color:var(--text-primary);">Author</strong></p>
           
-          <div style="display:flex;gap:10px;margin-bottom:20px;">
-            <button id="modal-borrow-btn" class="btn btn-primary"><i class="fas fa-bookmark"></i> Borrow</button>
-            <button id="modal-read-btn" class="btn btn-secondary" style="display:none;"><i class="fas fa-book-open"></i> Preview PDF</button>
-            <button id="modal-download-btn" class="btn btn-secondary" style="display:none;"><i class="fas fa-download"></i> Download</button>
-            <button id="modal-favorite-btn" class="btn btn-icon" title="Add to Favorites"><i class="far fa-heart" style="color:var(--danger);"></i></button>
+          <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+            <button id="modal-read-btn" class="btn btn-primary" style="display:none;"><i class="fas fa-book-open"></i> Read Online</button>
+            <button id="modal-download-btn" class="btn btn-secondary" style="display:none;"><i class="fas fa-download"></i> Download PDF</button>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="modal-book-tags-container">
+            <!-- Populated dynamically -->
           </div>
         </div>
       </div>
@@ -183,34 +186,10 @@
           <div><strong>Year:</strong> <span id="modal-book-year" class="text-secondary"></span></div>
           <div><strong>Language:</strong> <span id="modal-book-language" class="text-secondary"></span></div>
           <div><strong>ISBN:</strong> <span id="modal-book-isbn" class="text-secondary"></span></div>
-          <div><strong>Shelf Location:</strong> <span id="modal-book-shelf" class="text-secondary"></span></div>
-          <div><strong>Available:</strong> <span id="modal-book-qty" class="text-secondary"></span></div>
-        </div>
-      </div>
-
-      <!-- QR Code and Reviews Grid -->
-      <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:20px;border-top:1px solid var(--border-color);padding-top:20px;margin-bottom:25px;">
-        <div class="text-center">
-          <h4 style="font-size:0.95rem;margin-bottom:10px;font-weight:700;">Scan QR Code</h4>
-          <img id="modal-book-qrcode" src="" alt="Book QR Code" style="width:110px;height:110px;border:1px solid var(--border-color);border-radius:6px;padding:5px;">
-        </div>
-        <div>
-          <h4 style="font-size:0.95rem;margin-bottom:10px;font-weight:700;">Book Ratings & Reviews</h4>
-          <div id="modal-reviews-list" style="max-height:150px;overflow-y:auto;margin-bottom:10px;">
-            <!-- Populated dynamically -->
-          </div>
-          <form id="submit-review-form" style="display:flex;gap:5px;flex-direction:column;">
-            <select id="review-rating" class="admin-form-control" style="padding:6px;font-size:0.8rem;" required>
-              <option value="">Rate book</option>
-              <option value="5">5 Stars</option>
-              <option value="4">4 Stars</option>
-              <option value="3">3 Stars</option>
-              <option value="2">2 Stars</option>
-              <option value="1">1 Star</option>
-            </select>
-            <input id="review-text" type="text" class="admin-form-control" style="padding:6px;font-size:0.8rem;" placeholder="Write a short review..." required>
-            <button type="submit" class="btn btn-secondary" style="padding:6px;font-size:0.8rem;width:100%;">Submit Review</button>
-          </form>
+          <div><strong>Edition:</strong> <span id="modal-book-edition" class="text-secondary"></span></div>
+          <div><strong>Pages:</strong> <span id="modal-book-pages" class="text-secondary"></span></div>
+          <div><strong>File Size:</strong> <span id="modal-book-size" class="text-secondary"></span></div>
+          <div><strong>Stats:</strong> <span class="text-secondary"><i class="fas fa-eye"></i> <span id="modal-book-views">0</span> | <i class="fas fa-download"></i> <span id="modal-book-downloads">0</span></span></div>
         </div>
       </div>
 
@@ -219,27 +198,6 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:15px;" id="modal-related-books">
           <!-- Populated dynamically -->
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BORROW BOOK CONFIRMATION MODAL -->
-  <div class="modal-overlay" id="borrow-confirm-modal">
-    <div class="modal-content" style="max-width:400px;text-align:center;">
-      <button class="modal-close">&times;</button>
-      <i class="fas fa-bookmark" style="font-size:3rem;color:var(--accent-primary);margin-bottom:15px;"></i>
-      <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:10px;">Confirm Borrowing</h3>
-      <p style="color:var(--text-secondary);margin-bottom:20px;">You are requesting to borrow:</p>
-      <h4 id="borrow-confirm-title" style="font-weight:700;font-size:1.15rem;margin-bottom:5px;"></h4>
-      <p id="borrow-confirm-author" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:20px;"></p>
-      
-      <div style="background:var(--bg-tertiary);padding:12px;border-radius:8px;margin-bottom:25px;font-size:0.9rem;">
-        <strong>Return Deadline:</strong> <span id="borrow-confirm-date"></span>
-      </div>
-
-      <div style="display:flex;gap:10px;">
-        <button id="confirm-borrow-btn" class="btn btn-primary" style="flex:1;">Submit Request</button>
-        <button onclick="closeModal('borrow-confirm-modal')" class="btn btn-secondary" style="flex:1;">Cancel</button>
       </div>
     </div>
   </div>

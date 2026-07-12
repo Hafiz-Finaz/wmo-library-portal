@@ -29,7 +29,7 @@
       <div class="text-center" style="margin-bottom: 30px;">
         <i class="fas fa-lock logo-icon" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
         <h2 style="font-size: 1.8rem; font-weight: 800;">Welcome Back</h2>
-        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 5px;">Access your digital bookshelf and borrowing list</p>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 5px;">Access administrator dashboard and book manager</p>
       </div>
 
       <form id="login-form">
@@ -55,10 +55,6 @@
 
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 20px;">Sign In</button>
       </form>
-
-      <div class="text-center" style="font-size: 0.95rem; color: var(--text-secondary);">
-        Don't have an account? <a href="/register.html" style="color: var(--accent-primary); font-weight: 600;">Register here</a>
-      </div>
     </div>
 
     <!-- FORGOT PASSWORD CONTAINER (HIDDEN BY DEFAULT) -->
@@ -104,27 +100,11 @@
         <button type="submit" class="btn btn-primary" style="width: 100%;">Update Password</button>
       </form>
     </div>
-
   </main>
 
   <footer style="padding: 20px; text-align: center; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-color);">
-    &copy; 2026 WMO Imam Gazzali Academy Library Council.
+    &copy; 2026 WMO Imam Gazzali Academy Library Council. All rights reserved.
   </footer>
-
-  <script>
-    function toggleAuthContainers(mode) {
-      const login = document.getElementById("login-container");
-      const forgot = document.getElementById("forgot-container");
-      
-      if (mode === 'forgot') {
-        login.style.display = "none";
-        forgot.style.display = "block";
-      } else {
-        login.style.display = "block";
-        forgot.style.display = "none";
-      }
-    }
-  </script>
 
   <!-- Supabase & Authentication Hooks -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

@@ -1,8 +1,105 @@
 // Supabase Database Helper Logic
 
+// MOCK SEED DATA FOR OFFLINE DEVELOPMENT MODE
+const MOCK_CATEGORIES = [
+  { id: '1', category_name: 'Theology', icon: 'fa-bible' },
+  { id: '2', category_name: 'History', icon: 'fa-landmark' },
+  { id: '3', category_name: 'Science', icon: 'fa-flask' },
+  { id: '4', category_name: 'Languages', icon: 'fa-language' }
+];
+
+const MOCK_BOOKS = [
+  {
+    id: '101',
+    title: 'The Guidance of the Soul',
+    subtitle: 'Ihya Ulum al-Din Selection',
+    author: 'Imam al-Ghazali',
+    category_id: '1',
+    isbn: '978-0935782516',
+    publisher: 'Fons Vitae',
+    publication_year: 2005,
+    edition: '2nd Edition',
+    pages: 412,
+    file_size: '3.4 MB',
+    language: 'English',
+    status: 'available',
+    tags: 'theology, philosophy, spirituality',
+    featured: true,
+    views: 142,
+    downloads: 57,
+    description: 'A masterpiece on Islamic theology and spirituality, focusing on inner self-purification and ethical guidance.',
+    cover_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400',
+    pdf_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    created_at: new Date(Date.now() - 5 * 86400000).toISOString()
+  },
+  {
+    id: '102',
+    title: 'Medieval Wayanad',
+    subtitle: 'A Regional Historiography',
+    author: 'K. R. Menon',
+    category_id: '2',
+    isbn: '978-8120612984',
+    publisher: 'Asian Educational Services',
+    publication_year: 1998,
+    edition: '1st Edition',
+    pages: 285,
+    file_size: '4.1 MB',
+    language: 'English',
+    status: 'available',
+    tags: 'history, regional, kerala',
+    featured: true,
+    views: 89,
+    downloads: 24,
+    description: 'An in-depth study of the historical changes, trade guilds, and social structure of medieval Wayanad, Kerala.',
+    cover_image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=400',
+    pdf_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    created_at: new Date(Date.now() - 10 * 86400000).toISOString()
+  },
+  {
+    id: '103',
+    title: 'Modern Physics',
+    subtitle: 'For Undergraduates',
+    author: 'Dr. A. P. J. Abdul Kalam',
+    category_id: '3',
+    isbn: '978-8173711466',
+    publisher: 'Universities Press',
+    publication_year: 2012,
+    edition: '3rd Edition',
+    pages: 512,
+    file_size: '6.2 MB',
+    language: 'English',
+    status: 'available',
+    tags: 'physics, science, academic',
+    featured: false,
+    views: 241,
+    downloads: 88,
+    description: 'A comprehensive academic textbook explaining concepts of modern physics, quantum mechanics, and space science.',
+    cover_image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400',
+    pdf_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    created_at: new Date(Date.now() - 2 * 86400000).toISOString()
+  }
+];
+
+// Initialize Mock Data in LocalStorage if not exists
+if (window.useMockData) {
+  if (!localStorage.getItem('mock_categories')) {
+    localStorage.setItem('mock_categories', JSON.stringify(MOCK_CATEGORIES));
+  }
+  if (!localStorage.getItem('mock_books')) {
+    localStorage.setItem('mock_books', JSON.stringify(MOCK_BOOKS));
+  }
+  if (!localStorage.getItem('mock_messages')) {
+    localStorage.setItem('mock_messages', JSON.stringify([]));
+  }
+}
+
 const supabaseDb = {
   // --- CATEGORIES ---
   async getCategories() {
+    if (window.useMockData) {
+      return JSON.parse(localStorage.getItem('mock_categories') || '[]');
+    }
+
     try {
       const { data, error } = await window.supabaseClient
         .from('categories')
@@ -17,7 +114,68 @@ const supabaseDb = {
   },
 
   // --- BOOKS ---
-  async getBooks({ search = '', categoryId = null, language = '', author = '', sortBy = 'title', order = 'asc', page = 1, limit = 12 } = {}) {
+  async getBooks({ search = '', categoryId = null, language = '', author = '', sortBy = 'title', order = 'asc', page = 1, limit = 12, featured = null } = {}) {
+    if (window.useMockData) {
+      let books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      const categories = JSON.parse(localStorage.getItem('mock_categories') || '[]');
+
+      // Attach categories names
+      books = books.map(b => ({
+        ...b,
+        categories: categories.find(c => c.id === b.category_id) || { category_name: 'General' }
+      }));
+
+      // Apply filters
+      if (categoryId && categoryId !== 'all') {
+        books = books.filter(b => b.category_id === categoryId);
+      }
+      if (language && language !== 'all') {
+        books = books.filter(b => b.language === language);
+      }
+      if (author) {
+        books = books.filter(b => b.author.toLowerCase().includes(author.toLowerCase()));
+      }
+      if (featured !== null) {
+        books = books.filter(b => b.featured === featured);
+      }
+      if (search) {
+        const query = search.toLowerCase();
+        books = books.filter(b => 
+          b.title.toLowerCase().includes(query) ||
+          (b.subtitle && b.subtitle.toLowerCase().includes(query)) ||
+          b.author.toLowerCase().includes(query) ||
+          (b.isbn && b.isbn.toLowerCase().includes(query)) ||
+          (b.publisher && b.publisher.toLowerCase().includes(query)) ||
+          (b.tags && b.tags.toLowerCase().includes(query))
+        );
+      }
+
+      // Hide archived books
+      books = books.filter(b => b.status !== 'archived');
+
+      // Sorting
+      books.sort((a, b) => {
+        let valA = a[sortBy];
+        let valB = b[sortBy];
+
+        if (typeof valA === 'string') {
+          valA = valA.toLowerCase();
+          valB = valB.toLowerCase();
+        }
+
+        if (valA < valB) return order === 'asc' ? -1 : 1;
+        if (valA > valB) return order === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      // Pagination
+      const count = books.length;
+      const from = (page - 1) * limit;
+      const pagedBooks = books.slice(from, from + limit);
+
+      return { books: pagedBooks, total: count };
+    }
+
     try {
       let query = window.supabaseClient
         .from('books')
@@ -33,11 +191,14 @@ const supabaseDb = {
       if (author) {
         query = query.ilike('author', `%${author}%`);
       }
+      if (featured !== null) {
+        query = query.eq('featured', featured);
+      }
       if (search) {
-        query = query.or(`title.ilike.%${search}%,author.ilike.%${search}%,isbn.ilike.%${search}%,publisher.ilike.%${search}%`);
+        query = query.or(`title.ilike.%${search}%,subtitle.ilike.%${search}%,author.ilike.%${search}%,isbn.ilike.%${search}%,publisher.ilike.%${search}%,tags.ilike.%${search}%`);
       }
 
-      // Hide archived books for public
+      // Hide archived books for public view
       query = query.neq('status', 'archived');
 
       // Sorting
@@ -60,6 +221,17 @@ const supabaseDb = {
   },
 
   async getBookDetails(bookId) {
+    if (window.useMockData) {
+      const books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      const categories = JSON.parse(localStorage.getItem('mock_categories') || '[]');
+      const book = books.find(b => b.id === bookId);
+      if (!book) return null;
+      return {
+        ...book,
+        categories: categories.find(c => c.id === book.category_id) || { category_name: 'General' }
+      };
+    }
+
     try {
       const { data, error } = await window.supabaseClient
         .from('books')
@@ -75,6 +247,13 @@ const supabaseDb = {
   },
 
   async getRelatedBooks(categoryId, currentBookId, limit = 4) {
+    if (window.useMockData) {
+      const books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      return books
+        .filter(b => b.category_id === categoryId && b.id !== currentBookId && b.status !== 'archived')
+        .slice(0, limit);
+    }
+
     try {
       const { data, error } = await window.supabaseClient
         .from('books')
@@ -91,190 +270,27 @@ const supabaseDb = {
     }
   },
 
-  // --- BORROW SYSTEM ---
-  async requestBorrow(bookId, userId, durationDays = 14) {
-    try {
-      // 1. Check if user already borrowed this book and it's active
-      const { data: existing, error: checkError } = await window.supabaseClient
-        .from('borrowed_books')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('book_id', bookId)
-        .in('status', ['pending', 'approved', 'overdue']);
-
-      if (checkError) throw checkError;
-      if (existing && existing.length > 0) {
-        return { success: false, error: "You already have a pending or active borrow request for this book." };
-      }
-
-      // 2. Check book availability
-      const book = await this.getBookDetails(bookId);
-      if (!book || book.available_quantity <= 0 || book.status !== 'available') {
-        return { success: false, error: "This book is currently out of stock or unavailable." };
-      }
-
-      // 3. Check user borrow limits
-      const { count: activeBorrows, error: limitError } = await window.supabaseClient
-        .from('borrowed_books')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .in('status', ['approved', 'overdue']);
-
-      if (limitError) throw limitError;
-      const maxLimit = await this.getSystemSetting('max_borrow_limit', '3');
-      if (activeBorrows >= parseInt(maxLimit)) {
-        return { success: false, error: `You have reached your maximum active borrowing limit (${maxLimit} books).` };
-      }
-
-      // 4. Create borrow entry
-      const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + parseInt(durationDays));
-
-      const { data, error } = await window.supabaseClient
-        .from('borrowed_books')
-        .insert({
-          user_id: userId,
-          book_id: bookId,
-          due_date: dueDate.toISOString().split('T')[0],
-          status: 'pending'
-        })
-        .select();
-
-      if (error) throw error;
-
-      // Create system notification for admins/librarians (optional, but let's notify user too)
-      await this.createNotification(userId, "Borrow Request Submitted", `Your request to borrow "${book.title}" is pending approval.`);
-
-      return { success: true, borrow: data[0] };
-    } catch (error) {
-      console.error("Borrow request error:", error.message);
-      return { success: false, error: error.message };
-    }
-  },
-
-  async getUserBorrows(userId) {
-    try {
-      const { data, error } = await window.supabaseClient
-        .from('borrowed_books')
-        .select('*, books(*)')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error("Error fetching user borrows:", error.message);
-      return [];
-    }
-  },
-
-  // --- REVIEWS & WISHLIST ---
-  async getBookReviews(bookId) {
-    try {
-      const { data, error } = await window.supabaseClient
-        .from('book_reviews')
-        .select('*, users(full_name, profile_image)')
-        .eq('book_id', bookId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error("Error fetching reviews:", error.message);
-      return [];
-    }
-  },
-
-  async addReview(bookId, userId, rating, reviewText) {
-    try {
-      const { data, error } = await window.supabaseClient
-        .from('book_reviews')
-        .upsert({ book_id: bookId, user_id: userId, rating, review_text: reviewText })
-        .select();
-      if (error) throw error;
-      return { success: true, review: data[0] };
-    } catch (error) {
-      console.error("Error adding review:", error.message);
-      return { success: false, error: error.message };
-    }
-  },
-
-  async getWishlist(userId) {
-    try {
-      const { data, error } = await window.supabaseClient
-        .from('wishlist')
-        .select('*, books(*)')
-        .eq('user_id', userId);
-      if (error) throw error;
-      return data.map(item => item.books).filter(book => book !== null);
-    } catch (error) {
-      console.error("Error fetching wishlist:", error.message);
-      return [];
-    }
-  },
-
-  async toggleWishlist(userId, bookId) {
-    try {
-      const { data: existing, error: checkError } = await window.supabaseClient
-        .from('wishlist')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('book_id', bookId);
-
-      if (checkError) throw checkError;
-
-      if (existing && existing.length > 0) {
-        // Remove
-        const { error: deleteError } = await window.supabaseClient
-          .from('wishlist')
-          .delete()
-          .eq('user_id', userId)
-          .eq('book_id', bookId);
-        if (deleteError) throw deleteError;
-        return { success: true, action: 'removed' };
-      } else {
-        // Add
-        const { error: insertError } = await window.supabaseClient
-          .from('wishlist')
-          .insert({ user_id: userId, book_id: bookId });
-        if (insertError) throw insertError;
-        return { success: true, action: 'added' };
-      }
-    } catch (error) {
-      console.error("Wishlist toggle error:", error.message);
-      return { success: false, error: error.message };
-    }
-  },
-
-  async isWishlisted(userId, bookId) {
-    try {
-      const { data, error } = await window.supabaseClient
-        .from('wishlist')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('book_id', bookId);
-      if (error) throw error;
-      return data && data.length > 0;
-    } catch (error) {
-      return false;
-    }
-  },
-
-  // --- ANNOUNCEMENTS & MESSAGES ---
+  // --- ANNOUNCEMENTS ---
   async getAnnouncements(limit = 5) {
-    try {
-      const { data, error } = await window.supabaseClient
-        .from('announcements')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(limit);
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error("Error fetching announcements:", error.message);
-      return [];
-    }
+    return []; // announcements no longer used
   },
 
+  // --- CONTACT MESSAGES ---
   async sendContactMessage(name, email, subject, message) {
+    if (window.useMockData) {
+      const messages = JSON.parse(localStorage.getItem('mock_messages') || '[]');
+      messages.push({
+        id: String(Date.now()),
+        name,
+        email,
+        subject,
+        message,
+        created_at: new Date().toISOString()
+      });
+      localStorage.setItem('mock_messages', JSON.stringify(messages));
+      return { success: true };
+    }
+
     try {
       const { data, error } = await window.supabaseClient
         .from('contact_messages')
@@ -288,50 +304,52 @@ const supabaseDb = {
     }
   },
 
-  // --- NOTIFICATIONS ---
-  async getNotifications(userId) {
+  async getContactMessages() {
+    if (window.useMockData) {
+      const messages = JSON.parse(localStorage.getItem('mock_messages') || '[]');
+      return messages.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
     try {
       const { data, error } = await window.supabaseClient
-        .from('notifications')
+        .from('contact_messages')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error("Error fetching notifications:", error.message);
+      console.error("Error getting contact messages:", error.message);
       return [];
     }
   },
 
-  async markNotificationRead(notificationId) {
-    try {
-      const { error } = await window.supabaseClient
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId);
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      return false;
+  async deleteContactMessage(messageId) {
+    if (window.useMockData) {
+      let messages = JSON.parse(localStorage.getItem('mock_messages') || '[]');
+      messages = messages.filter(m => m.id !== messageId);
+      localStorage.setItem('mock_messages', JSON.stringify(messages));
+      return { success: true };
     }
-  },
 
-  async createNotification(userId, title, message) {
     try {
       const { error } = await window.supabaseClient
-        .from('notifications')
-        .insert({ user_id: userId, title, message });
+        .from('contact_messages')
+        .delete()
+        .eq('id', messageId);
       if (error) throw error;
-      return true;
+      return { success: true };
     } catch (error) {
-      console.error("Error creating notification:", error.message);
-      return false;
+      console.error("Error deleting contact message:", error.message);
+      return { success: false, error: error.message };
     }
   },
 
   // --- SYSTEM SETTINGS ---
   async getSystemSetting(key, defaultValue = '') {
+    if (window.useMockData) {
+      return localStorage.getItem(`setting_${key}`) || defaultValue;
+    }
+
     try {
       const { data, error } = await window.supabaseClient
         .from('system_settings')
@@ -347,6 +365,14 @@ const supabaseDb = {
 
   // --- STORAGE UPLOADS ---
   async uploadFile(bucket, filePath, fileObj) {
+    if (window.useMockData) {
+      // Mock File Upload (generate a locally loadable image/PDF placeholder)
+      if (fileObj.type.startsWith('image/')) {
+        return { success: true, url: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=400' };
+      }
+      return { success: true, url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' };
+    }
+
     try {
       const { data, error } = await window.supabaseClient.storage
         .from(bucket)
@@ -369,9 +395,54 @@ const supabaseDb = {
     }
   },
 
-  // --- COUNTERS ---
-  async incrementDownload(bookId) {
+  // --- VIEWS & DOWNLOADS COUNTERS ---
+  async incrementBookViews(bookId) {
+    if (window.useMockData) {
+      const books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      const idx = books.findIndex(b => b.id === bookId);
+      if (idx !== -1) {
+        books[idx].views = (books[idx].views || 0) + 1;
+        localStorage.setItem('mock_books', JSON.stringify(books));
+      }
+      return true;
+    }
+
     try {
+      // Fetch current view count
+      const { data: book, error: fetchErr } = await window.supabaseClient
+        .from('books')
+        .select('views')
+        .eq('id', bookId)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      const { error: updateErr } = await window.supabaseClient
+        .from('books')
+        .update({ views: (book.views || 0) + 1 })
+        .eq('id', bookId);
+
+      if (updateErr) throw updateErr;
+      return true;
+    } catch (error) {
+      console.error("Increment views error:", error.message);
+      return false;
+    }
+  },
+
+  async incrementBookDownloads(bookId) {
+    if (window.useMockData) {
+      const books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      const idx = books.findIndex(b => b.id === bookId);
+      if (idx !== -1) {
+        books[idx].downloads = (books[idx].downloads || 0) + 1;
+        localStorage.setItem('mock_books', JSON.stringify(books));
+      }
+      return true;
+    }
+
+    try {
+      // Fetch current download count
       const { data: book, error: fetchErr } = await window.supabaseClient
         .from('books')
         .select('downloads')
@@ -390,6 +461,99 @@ const supabaseDb = {
     } catch (error) {
       console.error("Increment downloads error:", error.message);
       return false;
+    }
+  },
+
+  async saveBook(id, payload) {
+    if (window.useMockData) {
+      const books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      if (id) {
+        // Edit mode
+        const idx = books.findIndex(b => b.id === id);
+        if (idx !== -1) {
+          books[idx] = { ...books[idx], ...payload, updated_at: new Date().toISOString() };
+        }
+      } else {
+        // New mode
+        const newBook = {
+          ...payload,
+          id: String(Date.now()),
+          views: 0,
+          downloads: 0,
+          created_at: new Date().toISOString()
+        };
+        books.push(newBook);
+      }
+      localStorage.setItem('mock_books', JSON.stringify(books));
+      return { success: true };
+    }
+
+    try {
+      if (id) {
+        const { error } = await window.supabaseClient.from('books').update(payload).eq('id', id);
+        if (error) throw error;
+      } else {
+        const { error } = await window.supabaseClient.from('books').insert(payload);
+        if (error) throw error;
+      }
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  async deleteBook(bookId) {
+    if (window.useMockData) {
+      let books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      books = books.filter(b => b.id !== bookId);
+      localStorage.setItem('mock_books', JSON.stringify(books));
+      return { success: true };
+    }
+
+    try {
+      const { error } = await window.supabaseClient.from('books').delete().eq('id', bookId);
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  async addCategory(name, icon) {
+    if (window.useMockData) {
+      const categories = JSON.parse(localStorage.getItem('mock_categories') || '[]');
+      categories.push({
+        id: String(Date.now()),
+        category_name: name,
+        icon: icon || 'fa-book'
+      });
+      localStorage.setItem('mock_categories', JSON.stringify(categories));
+      return { success: true };
+    }
+
+    try {
+      const { error } = await window.supabaseClient.from('categories').insert({ category_name: name, icon: icon || 'fa-book' });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  async deleteCategory(catId) {
+    if (window.useMockData) {
+      let categories = JSON.parse(localStorage.getItem('mock_categories') || '[]');
+      categories = categories.filter(c => c.id !== catId);
+      localStorage.setItem('mock_categories', JSON.stringify(categories));
+      return { success: true };
+    }
+
+    try {
+      const { error } = await window.supabaseClient.from('categories').delete().eq('id', catId);
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
   }
 };

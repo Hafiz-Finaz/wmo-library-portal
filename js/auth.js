@@ -3,10 +3,10 @@
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Check if user is already logged in, redirect to dashboard
+  // Check if user is already logged in, redirect to admin dashboard
   const userRole = localStorage.getItem('user_role');
-  if (userRole && (window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('register.html'))) {
-    window.location.href = '/dashboard.html';
+  if (userRole === 'admin' && (window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('register.html'))) {
+    window.location.href = '/admin/index.html';
     return;
   }
 
@@ -14,12 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("login-form");
   if (loginForm) {
     loginForm.addEventListener("submit", handleLoginSubmit);
-  }
-
-  // Bind register form
-  const registerForm = document.getElementById("register-form");
-  if (registerForm) {
-    registerForm.addEventListener("submit", handleRegisterSubmit);
   }
 
   // Bind forgot password form
@@ -51,11 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Check if we are in the recovery flow (URL contains recovery params or hash)
+  // Check if we are in the recovery flow
   checkPasswordRecoveryFlow();
 });
 
-// LOGIN ACTION
+// LOGIN ACTION (Only Admins are permitted entry to the Dashboard)
 async function handleLoginSubmit(e) {
   e.preventDefault();
   const email = document.getElementById("login-email").value.trim();
@@ -71,55 +65,19 @@ async function handleLoginSubmit(e) {
 
   const res = await window.supabaseAuth.signIn(email, password);
   if (res.success) {
-    showToast("Login successful!", "success");
     // Fetch profile role and redirect
     const userProfile = await window.supabaseAuth.getCurrentUser();
-    setTimeout(() => {
-      if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'librarian')) {
+    if (userProfile && userProfile.role === 'admin') {
+      showToast("Welcome Administrator!", "success");
+      setTimeout(() => {
         window.location.href = '/admin/index.html';
-      } else {
-        // Redirect back to page before login if available
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirect = urlParams.get('redirect');
-        window.location.href = redirect ? decodeURIComponent(redirect) : '/dashboard.html';
-      }
-    }, 1000);
-  } else {
-    showToast(res.error, "error");
-    setLoadingState(submitBtn, false);
-  }
-}
-
-// REGISTER ACTION
-async function handleRegisterSubmit(e) {
-  e.preventDefault();
-  const fullName = document.getElementById("reg-name").value.trim();
-  const email = document.getElementById("reg-email").value.trim();
-  const phone = document.getElementById("reg-phone").value.trim();
-  const password = document.getElementById("reg-password").value;
-  const role = document.getElementById("reg-role").value;
-  const terms = document.getElementById("reg-terms").checked;
-  const submitBtn = e.target.querySelector("button[type='submit']");
-
-  if (!fullName || !email || !phone || !password) {
-    showToast("Please fill in all fields", "warning");
-    return;
-  }
-
-  if (!terms) {
-    showToast("You must agree to the Terms & Conditions", "warning");
-    return;
-  }
-
-  setLoadingState(submitBtn, true);
-
-  const res = await window.supabaseAuth.signUp(email, password, fullName, phone, role);
-  if (res.success) {
-    showToast("Registration successful! Please check your email for confirmation.", "success");
-    e.target.reset();
-    setTimeout(() => {
-      window.location.href = '/login.html';
-    }, 3000);
+      }, 1000);
+    } else {
+      // Not admin! Log them out immediately
+      showToast("Access Denied: Administrator role required.", "error");
+      await window.supabaseAuth.signOut();
+      setLoadingState(submitBtn, false);
+    }
   } else {
     showToast(res.error, "error");
     setLoadingState(submitBtn, false);
@@ -149,26 +107,31 @@ async function handleForgotPasswordSubmit(e) {
   setLoadingState(submitBtn, false);
 }
 
-// RECOVERY Flow (Update Password)
+// UPDATE PASSWORD ACTION (RECOVERY FLOW)
 async function handleUpdatePasswordSubmit(e) {
   e.preventDefault();
-  const newPassword = document.getElementById("recovery-password").value;
-  const confirmPassword = document.getElementById("recovery-confirm").value;
+  const password = document.getElementById("recovery-password").value;
+  const confirm = document.getElementById("recovery-confirm").value;
   const submitBtn = e.target.querySelector("button[type='submit']");
 
-  if (!newPassword || !confirmPassword) {
-    showToast("Please enter and confirm your password", "warning");
+  if (!password || !confirm) {
+    showToast("Please fill in all fields", "warning");
     return;
   }
 
-  if (newPassword !== confirmPassword) {
-    showToast("Passwords do not match", "warning");
+  if (password.length < 6) {
+    showToast("Password must be at least 6 characters", "warning");
+    return;
+  }
+
+  if (password !== confirm) {
+    showToast("Passwords do not match", "error");
     return;
   }
 
   setLoadingState(submitBtn, true);
 
-  const res = await window.supabaseAuth.updatePassword(newPassword);
+  const res = await window.supabaseAuth.updatePassword(password);
   if (res.success) {
     showToast("Password updated successfully! Redirecting to login...", "success");
     setTimeout(() => {
@@ -180,34 +143,39 @@ async function handleUpdatePasswordSubmit(e) {
   }
 }
 
-// HELPER STATE LOADER
-function setLoadingState(button, isLoading) {
-  if (isLoading) {
-    button.disabled = true;
-    button.dataset.originalText = button.innerHTML;
-    button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
-  } else {
-    button.disabled = false;
-    button.innerHTML = button.dataset.originalText || "Submit";
-  }
-}
-
-// Check recovery flows (Hash variables injected by Supabase reset links)
+// Check recovery parameter
 function checkPasswordRecoveryFlow() {
-  const hash = window.location.hash;
   const urlParams = new URLSearchParams(window.location.search);
-  const isRecovery = urlParams.get('type') === 'recovery' || hash.includes('type=recovery') || hash.includes('access_token=');
-
-  if (isRecovery) {
-    const recoveryContainer = document.getElementById("recovery-container");
-    const loginContainer = document.getElementById("login-container");
-    const forgotContainer = document.getElementById("forgot-container");
-
-    if (recoveryContainer && loginContainer) {
-      loginContainer.style.display = "none";
-      if (forgotContainer) forgotContainer.style.display = "none";
-      recoveryContainer.style.display = "block";
-      showToast("Access token verified. Please enter your new password.", "info");
-    }
+  const type = urlParams.get('type');
+  
+  if (type === 'recovery' || window.location.hash.includes('type=recovery')) {
+    // Show recovery container, hide login/forgot
+    toggleAuthContainers('recovery');
   }
 }
+
+// UI State Switcher
+function toggleAuthContainers(view) {
+  const loginBox = document.getElementById("login-container");
+  const forgotBox = document.getElementById("forgot-container");
+  const recoveryBox = document.getElementById("recovery-container");
+
+  if (loginBox) loginBox.style.display = view === 'login' ? 'block' : 'none';
+  if (forgotBox) forgotBox.style.display = view === 'forgot' ? 'block' : 'none';
+  if (recoveryBox) recoveryBox.style.display = view === 'recovery' ? 'block' : 'none';
+}
+
+// Button loading state manager
+function setLoadingState(btn, isLoading) {
+  if (!btn) return;
+  if (isLoading) {
+    btn.dataset.originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.originalText || "Submit";
+  }
+}
+
+window.toggleAuthContainers = toggleAuthContainers;

@@ -1,5 +1,5 @@
 -- SUPABASE SQL SETUP SCRIPT
--- Run this script in the Supabase SQL Editor to set up tables, triggers, and Row Level Security (RLS).
+-- Run this script in the Supabase SQL Editor to set up tables, triggers, and Row Level Security (RLS) for the Digital Library Portal.
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -18,46 +18,39 @@ CREATE TABLE IF NOT EXISTS public.users (
     full_name VARCHAR(150),
     email VARCHAR(150) UNIQUE,
     phone VARCHAR(20),
-    role VARCHAR(20) NOT NULL DEFAULT 'student' CHECK (role IN ('admin', 'librarian', 'student', 'guest')),
+    role VARCHAR(20) NOT NULL DEFAULT 'student' CHECK (role IN ('admin', 'student')),
     profile_image TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. BOOKS TABLE
+-- 3. BOOKS TABLE (Digital library layout)
 CREATE TABLE IF NOT EXISTS public.books (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
+    subtitle VARCHAR(255),
     author VARCHAR(150) NOT NULL,
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
     isbn VARCHAR(20) UNIQUE,
     publisher VARCHAR(150),
     publication_year INTEGER,
+    edition VARCHAR(50),
+    pages INTEGER,
+    file_size VARCHAR(50),
     language VARCHAR(50) DEFAULT 'English',
     description TEXT,
+    tags TEXT, -- Comma-separated list of tags
     cover_image TEXT, -- Storage URL
     pdf_url TEXT,     -- Storage URL
-    available_quantity INTEGER NOT NULL DEFAULT 1,
-    total_quantity INTEGER NOT NULL DEFAULT 1,
-    shelf_location VARCHAR(50),
-    status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'out_of_stock', 'archived')),
+    featured BOOLEAN DEFAULT FALSE,
     downloads INTEGER DEFAULT 0,
+    views INTEGER DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'archived')),
+    created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    CONSTRAINT qty_check CHECK (available_quantity <= total_quantity AND available_quantity >= 0)
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. BORROWED BOOKS TABLE
-CREATE TABLE IF NOT EXISTS public.borrowed_books (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-    book_id UUID REFERENCES public.books(id) ON DELETE CASCADE,
-    borrowed_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    due_date DATE NOT NULL,
-    returned_date DATE,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned', 'overdue')),
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 5. ANNOUNCEMENTS TABLE
+-- 4. ANNOUNCEMENTS TABLE
 CREATE TABLE IF NOT EXISTS public.announcements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
@@ -66,7 +59,7 @@ CREATE TABLE IF NOT EXISTS public.announcements (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. CONTACT MESSAGES TABLE
+-- 5. CONTACT MESSAGES TABLE
 CREATE TABLE IF NOT EXISTS public.contact_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(150) NOT NULL,
@@ -76,37 +69,7 @@ CREATE TABLE IF NOT EXISTS public.contact_messages (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. BOOK REVIEWS TABLE (Extra Feature)
-CREATE TABLE IF NOT EXISTS public.book_reviews (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    book_id UUID REFERENCES public.books(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-    review_text TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE (book_id, user_id)
-);
-
--- 8. WISHLIST TABLE (Extra Feature)
-CREATE TABLE IF NOT EXISTS public.wishlist (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-    book_id UUID REFERENCES public.books(id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE (user_id, book_id)
-);
-
--- 9. NOTIFICATIONS TABLE (Extra Feature)
-CREATE TABLE IF NOT EXISTS public.notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    message TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 10. SYSTEM SETTINGS TABLE (Extra Feature)
+-- 6. SYSTEM SETTINGS TABLE
 CREATE TABLE IF NOT EXISTS public.system_settings (
     key VARCHAR(50) PRIMARY KEY,
     value TEXT NOT NULL
@@ -114,21 +77,15 @@ CREATE TABLE IF NOT EXISTS public.system_settings (
 
 -- Seed basic settings
 INSERT INTO public.system_settings (key, value) VALUES
-('library_name', 'WMO Imam Gazzali Academy Library Council'),
-('max_borrow_limit', '3'),
-('borrow_duration_days', '14')
+('library_name', 'WMO Imam Gazzali Academy Library Council')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- Enable Row Level Security (RLS) on all tables
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.books ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.borrowed_books ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.book_reviews ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.wishlist ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
 
 -- ----------------------------------------------------
@@ -138,17 +95,17 @@ ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
 -- Categories Policies
 CREATE POLICY "Allow public read-only access to categories" ON public.categories
     FOR SELECT USING (true);
-CREATE POLICY "Allow admin/librarian insert to categories" ON public.categories
+CREATE POLICY "Allow admin insert to categories" ON public.categories
     FOR INSERT WITH CHECK (
-        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian'))
+        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role = 'admin')
     );
-CREATE POLICY "Allow admin/librarian update to categories" ON public.categories
+CREATE POLICY "Allow admin update to categories" ON public.categories
     FOR UPDATE USING (
-        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian'))
+        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role = 'admin')
     );
-CREATE POLICY "Allow admin/librarian delete to categories" ON public.categories
+CREATE POLICY "Allow admin delete to categories" ON public.categories
     FOR DELETE USING (
-        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian'))
+        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role = 'admin')
     );
 
 -- Users Policies
@@ -164,62 +121,26 @@ CREATE POLICY "Allow admin to manage all user accounts" ON public.users
 -- Books Policies
 CREATE POLICY "Allow public read-only access to books" ON public.books
     FOR SELECT USING (true);
-CREATE POLICY "Allow admin/librarian to manage books" ON public.books
+CREATE POLICY "Allow admin to manage books" ON public.books
     FOR ALL USING (
-        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian'))
-    );
-
--- Borrowed Books Policies
-CREATE POLICY "Allow users to view own borrows" ON public.borrowed_books
-    FOR SELECT USING (auth.uid() = user_id OR EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian')));
-CREATE POLICY "Allow users to request borrow (insert)" ON public.borrowed_books
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Allow admin/librarian to update borrows" ON public.borrowed_books
-    FOR UPDATE USING (
-        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian'))
+        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role = 'admin')
     );
 
 -- Announcements Policies
 CREATE POLICY "Allow public read-only access to announcements" ON public.announcements
     FOR SELECT USING (true);
-CREATE POLICY "Allow admin/librarian to manage announcements" ON public.announcements
+CREATE POLICY "Allow admin to manage announcements" ON public.announcements
     FOR ALL USING (
-        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian'))
+        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role = 'admin')
     );
 
 -- Contact Messages Policies
 CREATE POLICY "Allow anyone to insert contact messages" ON public.contact_messages
     FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow admin/librarian to read/manage contact messages" ON public.contact_messages
+CREATE POLICY "Allow admin to read/manage contact messages" ON public.contact_messages
     FOR ALL USING (
-        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian'))
+        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role = 'admin')
     );
-
--- Book Reviews Policies
-CREATE POLICY "Allow anyone to read reviews" ON public.book_reviews
-    FOR SELECT USING (true);
-CREATE POLICY "Allow logged in users to write reviews" ON public.book_reviews
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Allow users to edit/delete own reviews" ON public.book_reviews
-    FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Allow admin to manage all reviews" ON public.book_reviews
-    FOR DELETE USING (
-        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role IN ('admin', 'librarian'))
-    );
-
--- Wishlist Policies
-CREATE POLICY "Allow users to view own wishlist" ON public.wishlist
-    FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Allow users to manage own wishlist" ON public.wishlist
-    FOR ALL USING (auth.uid() = user_id);
-
--- Notifications Policies
-CREATE POLICY "Allow users to view own notifications" ON public.notifications
-    FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Allow users to update own notifications (mark read)" ON public.notifications
-    FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Allow system/admin to insert notifications" ON public.notifications
-    FOR INSERT WITH CHECK (true);
 
 -- System Settings Policies
 CREATE POLICY "Allow public to read settings" ON public.system_settings
@@ -237,7 +158,6 @@ CREATE POLICY "Allow admin to update settings" ON public.system_settings
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Extract values from raw_user_meta_data if present, fallback to defaults
   INSERT INTO public.users (id, full_name, email, phone, role)
   VALUES (
     NEW.id,
@@ -256,12 +176,12 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ----------------------------------------------------
--- STORAGE BUCKETS (INSTRUCTIONS IN SQL FOR REFERENCE)
+-- STORAGE BUCKETS (INSTRUCTIONS)
 -- ----------------------------------------------------
 -- Note: Create two public storage buckets in the Supabase console:
 -- 1. 'covers' - For book cover images.
 -- 2. 'pdfs' - For digital books PDF files.
--- Set appropriate access controls: Select (Public), Insert/Update/Delete (Authenticated with admin/librarian role).
+-- Set appropriate access controls: Select (Public), Insert/Update/Delete (Authenticated with admin role).
 
 -- ----------------------------------------------------
 -- SEED DATA (INITIAL DATA INJECTION)
@@ -279,96 +199,111 @@ INSERT INTO public.categories (id, category_name, icon) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Seed books
-INSERT INTO public.books (id, title, author, category_id, isbn, publisher, publication_year, language, description, cover_image, pdf_url, available_quantity, total_quantity, shelf_location, status, downloads) VALUES
+INSERT INTO public.books (id, title, subtitle, author, category_id, isbn, publisher, publication_year, edition, pages, file_size, language, description, tags, cover_image, pdf_url, featured, downloads, views) VALUES
 (
   'b0000000-0000-0000-0000-000000000001',
   'The Alchemy of Happiness',
+  'Kimiya-yi Sa''adat',
   'Al-Ghazali',
   'c0000000-0000-0000-0000-000000000001',
   '978-1597310031',
   'The Islamic Texts Society',
   2002,
+  '1st Edition',
+  320,
+  '1.2 MB',
   'English',
   'A classic treatise on Sufi psychology and theology, exploring the path to spiritual fulfillment and knowledge of self and the Divine.',
+  'sufism, philosophy, spirituality',
   'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400',
   null,
-  2,
-  2,
-  'A1-Shelf-3',
-  'available',
-  18
+  true,
+  18,
+  125
 ),
 (
   'b0000000-0000-0000-0000-000000000002',
   'Ihya Ulum al-Din (Arabic)',
+  'Revival of religious sciences',
   'Al-Ghazali',
   'c0000000-0000-0000-0000-000000000001',
   '978-2745100000',
   'Dar Al-Kotob Al-Ilmiyah',
   1998,
+  'Dar Al-Kotob Edition',
+  1240,
+  '8.5 MB',
   'Arabic',
   'The Revival of the Religious Sciences is widely regarded as the greatest work of Muslim spirituality and theology.',
+  'theology, jurisprudence, spirituality',
   'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=400',
   null,
-  1,
-  1,
-  'A1-Shelf-4',
-  'available',
-  24
+  true,
+  24,
+  180
 ),
 (
   'b0000000-0000-0000-0000-000000000003',
   'Introduction to Algorithms',
+  'Core Computer Science Algorithms Guide',
   'Thomas H. Cormen',
   'c0000000-0000-0000-0000-000000000003',
   '978-0262033848',
   'MIT Press',
   2009,
+  '3rd Edition',
+  1292,
+  '12.4 MB',
   'English',
   'The standard reference text for algorithms, providing a comprehensive guide to data structures, algorithms design, and analysis.',
+  'algorithms, programming, computer-science',
   'https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&q=80&w=400',
   null,
-  3,
-  3,
-  'C2-Shelf-1',
-  'available',
-  42
+  false,
+  42,
+  290
 ),
 (
   'b0000000-0000-0000-0000-000000000004',
   'Aadujeevitham (Goat Days)',
+  'A Novel of Exile and Survival',
   'Benyamin',
   'c0000000-0000-0000-0000-000000000004',
   '978-8126422739',
   'Green Books',
   2008,
+  '10th Reprint',
+  250,
+  '2.1 MB',
   'Malayalam',
   'The poignant story of Najeeb, an Indian emigrant worker, who is forced into slavery as a goat herd in the remote deserts of Saudi Arabia.',
+  'fiction, survival, malayalam-novel',
   'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=400',
   null,
-  2,
-  2,
-  'D1-Shelf-2',
-  'available',
-  56
+  true,
+  56,
+  340
 ),
 (
   'b0000000-0000-0000-0000-000000000005',
   'A Brief History of Time',
+  'From the Big Bang to Black Holes',
   'Stephen Hawking',
   'c0000000-0000-0000-0000-000000000003',
   '978-0553380163',
   'Bantam Books',
   1998,
+  'Updated Edition',
+  220,
+  '1.8 MB',
   'English',
   'Hawking writes in non-technical terms about the structure, origin, development, and eventual fate of the universe.',
+  'cosmology, physics, science',
   'https://images.unsplash.com/photo-1618666012174-83b441c0bc76?auto=format&fit=crop&q=80&w=400',
   null,
-  2,
-  2,
-  'C2-Shelf-2',
-  'available',
-  35
+  false,
+  35,
+  210
 )
 ON CONFLICT (id) DO NOTHING;
 
@@ -377,7 +312,7 @@ INSERT INTO public.announcements (id, title, content, image) VALUES
 (
   'a0000000-0000-0000-0000-000000000001',
   'Digital Library Portal Launched!',
-  'WMO Imam Gazzali Academy Library Council is proud to launch its state-of-the-art Digital Library Management Portal. Scholars can now search the catalog, view real-time shelf availability, check borrowing rules, and read digital E-Books directly.',
+  'WMO Imam Gazzali Academy Library Council is proud to launch its state-of-the-art Digital Library Management Portal. Scholars can now search the catalog, view book details, read digital E-Books, and download materials directly.',
   'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600'
 ),
 (
@@ -387,4 +322,3 @@ INSERT INTO public.announcements (id, title, content, image) VALUES
   'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&q=80&w=600'
 )
 ON CONFLICT (id) DO NOTHING;
-

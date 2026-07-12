@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Inventory & Borrows - Admin Portal</title>
+  <title>Manage E-Books Inventory - Admin Portal</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -33,11 +33,10 @@
       </div>
       <ul class="sidebar-menu">
         <li><a href="/admin/index.html"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-        <li class="active"><a href="/admin/books.html"><i class="fas fa-book"></i> <span>Books Catalog</span></a></li>
+        <li class="active"><a href="/admin/books.html"><i class="fas fa-book"></i> <span>Books Management</span></a></li>
         <li><a href="/admin/categories.html"><i class="fas fa-tags"></i> <span>Categories</span></a></li>
-        <li><a href="/admin/users.html"><i class="fas fa-users-cog"></i> <span>User Roles</span></a></li>
-        <li><a href="/admin/reports.html"><i class="fas fa-file-invoice"></i> <span>Reports & Backup</span></a></li>
-        <li><a href="/admin/settings.html"><i class="fas fa-cog"></i> <span>System Settings</span></a></li>
+        <li><a href="/admin/messages.html"><i class="fas fa-envelope"></i> <span>Messages</span></a></li>
+        <li><a href="/admin/settings.html"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
       </ul>
       <div class="sidebar-footer">
         <a href="javascript:void(0)" onclick="window.handleLogout()"><i class="fas fa-sign-out-alt"></i> <span>Log Out</span></a>
@@ -50,8 +49,8 @@
       <!-- Top header bar -->
       <div class="admin-header">
         <div class="admin-header-title">
-          <h2>Library Inventory & Borrowing Requests</h2>
-          <p>Create, update, and manage E-books catalog and borrow requests approval</p>
+          <h2>Digital E-Books Management</h2>
+          <p>Create, update, and manage E-books catalog, metadata and PDF files</p>
         </div>
         <div class="admin-header-actions">
           <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme"><i class="fas fa-moon"></i></button>
@@ -59,38 +58,11 @@
         </div>
       </div>
 
-      <!-- BORROW REQUESTS SECTION -->
-      <div class="table-card" style="margin-bottom: 40px;">
-        <div class="table-header-bar" style="background: rgba(245,158,11,0.02);">
-          <div class="table-header-title">
-            <h3 style="color:var(--warning);"><i class="fas fa-bell"></i> Pending Borrow & Return Actions</h3>
-          </div>
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Borrower</th>
-                <th>Book Title</th>
-                <th>Request Date</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="admin-borrows-table-body">
-              <!-- Populated dynamically by admin.js -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <!-- BOOKS CATALOG TABLE -->
       <div class="table-card">
         <div class="table-header-bar">
           <div class="table-header-title">
-            <h3>Library Book Catalog Inventory</h3>
+            <h3>Portal Book Catalog</h3>
           </div>
         </div>
         
@@ -100,11 +72,12 @@
               <tr>
                 <th>#</th>
                 <th>Cover</th>
-                <th>Book Title</th>
+                <th>Book Title & Subtitle</th>
                 <th>Author</th>
                 <th>Subject Area</th>
-                <th>Quantity</th>
-                <th>Status</th>
+                <th>Views</th>
+                <th>Downloads</th>
+                <th>Featured</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -134,32 +107,54 @@
             <input type="text" id="book-form-title" class="admin-form-control" required placeholder="Enter title">
           </div>
           <div class="admin-form-group">
-            <label for="book-form-author">Author Name</label>
-            <input type="text" id="book-form-author" class="admin-form-control" required placeholder="Enter author name">
+            <label for="book-form-subtitle">Book Subtitle</label>
+            <input type="text" id="book-form-subtitle" class="admin-form-control" placeholder="Enter subtitle/translation">
           </div>
         </div>
 
         <div class="form-row">
+          <div class="admin-form-group">
+            <label for="book-form-author">Author Name</label>
+            <input type="text" id="book-form-author" class="admin-form-control" required placeholder="Enter author name">
+          </div>
           <div class="admin-form-group">
             <label for="book-form-category">Subject Category</label>
             <select id="book-form-category" class="admin-form-control" required>
               <option value="">Select Category</option>
             </select>
           </div>
+        </div>
+
+        <div class="form-row">
           <div class="admin-form-group">
             <label for="book-form-isbn">ISBN Number</label>
             <input type="text" id="book-form-isbn" class="admin-form-control" placeholder="Optional ISBN">
+          </div>
+          <div class="admin-form-group">
+            <label for="book-form-publisher">Publisher</label>
+            <input type="text" id="book-form-publisher" class="admin-form-control" placeholder="Optional publisher">
           </div>
         </div>
 
         <div class="form-row">
           <div class="admin-form-group">
-            <label for="book-form-publisher">Publisher</label>
-            <input type="text" id="book-form-publisher" class="admin-form-control" placeholder="Optional publisher">
-          </div>
-          <div class="admin-form-group">
             <label for="book-form-year">Publication Year</label>
             <input type="number" id="book-form-year" class="admin-form-control" placeholder="Optional year">
+          </div>
+          <div class="admin-form-group">
+            <label for="book-form-edition">Edition</label>
+            <input type="text" id="book-form-edition" class="admin-form-control" placeholder="e.g. 2nd Edition">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="admin-form-group">
+            <label for="book-form-pages">Number of Pages</label>
+            <input type="number" id="book-form-pages" class="admin-form-control" placeholder="e.g. 350">
+          </div>
+          <div class="admin-form-group">
+            <label for="book-form-size">File Size</label>
+            <input type="text" id="book-form-size" class="admin-form-control" placeholder="e.g. 2.4 MB">
           </div>
         </div>
 
@@ -173,23 +168,24 @@
             </select>
           </div>
           <div class="admin-form-group">
-            <label for="book-form-qty">Total Stock Quantity</label>
-            <input type="number" id="book-form-qty" class="admin-form-control" required min="1" value="1">
+            <label for="book-form-status">Status</label>
+            <select id="book-form-status" class="admin-form-control">
+              <option value="available">Available</option>
+              <option value="archived">Archived</option>
+            </select>
           </div>
         </div>
 
         <div class="form-row">
-          <div class="admin-form-group">
-            <label for="book-form-shelf">Physical Shelf Location</label>
-            <input type="text" id="book-form-shelf" class="admin-form-control" placeholder="e.g. Almirah A2, Shelf 4">
+          <div class="admin-form-group" style="flex: 2;">
+            <label for="book-form-tags">Tags (comma-separated)</label>
+            <input type="text" id="book-form-tags" class="admin-form-control" placeholder="e.g. history, theology, science">
           </div>
-          <div class="admin-form-group">
-            <label for="book-form-status">Availability Status</label>
-            <select id="book-form-status" class="admin-form-control">
-              <option value="available">Available</option>
-              <option value="out_of_stock">Out of Stock</option>
-              <option value="archived">Archived</option>
-            </select>
+          <div class="admin-form-group" style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+              <input type="checkbox" id="book-form-featured" style="width: 18px; height: 18px;">
+              Featured E-Book
+            </label>
           </div>
         </div>
 

@@ -226,16 +226,10 @@ async function updateNavAuthenticationStates() {
   if (!authNav) return;
 
   const role = localStorage.getItem('user_role');
-  const name = localStorage.getItem('user_name');
 
-  if (role && name) {
-    let portalLink = "";
-    if (role === 'admin' || role === 'librarian') {
-      portalLink = `<a href="/admin/index.html" class="nav-item-admin" style="font-weight:600;margin-right:15px;color:var(--accent-primary);"><i class="fas fa-toolbox"></i> Admin</a>`;
-    }
+  if (role === 'admin') {
     authNav.innerHTML = `
-      ${portalLink}
-      <a href="/dashboard.html" class="btn btn-secondary"><i class="fas fa-user-circle"></i> ${name.split(' ')[0]}</a>
+      <a href="/admin/index.html" class="btn btn-secondary" style="font-weight:600;margin-right:10px;"><i class="fas fa-toolbox"></i> Admin Panel</a>
       <button onclick="handleLogout()" class="btn btn-icon" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
     `;
   } else {
@@ -259,6 +253,43 @@ async function handleLogout() {
     }
   }
 }
+
+// Bind contact form if present
+document.addEventListener("DOMContentLoaded", () => {
+  const contactForm = document.getElementById("contact-form");
+  if (contactForm) {
+    contactForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("contact-name").value.trim();
+      const email = document.getElementById("contact-email").value.trim();
+      const subject = document.getElementById("contact-subject").value.trim();
+      const message = document.getElementById("contact-message").value.trim();
+      const submitBtn = e.target.querySelector("button[type='submit']");
+      
+      if (!name || !email || !subject || !message) {
+        showToast("Please fill in all fields", "warning");
+        return;
+      }
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+      }
+      
+      const res = await window.supabaseDb.sendContactMessage(name, email, subject, message);
+      if (res.success) {
+        showToast("Message sent successfully! Thank you.", "success");
+        contactForm.reset();
+      } else {
+        showToast("Error: " + res.error, "error");
+      }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Message';
+      }
+    });
+  }
+});
 
 // TOAST NOTIFICATION ENGINE
 function showToast(message, type = "info") {

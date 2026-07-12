@@ -192,3 +192,4 @@ function changePage(pageNumber) {
 }
 
 window.changePage = changePage;
+window.loadCatalog = loadCatalogBooks;

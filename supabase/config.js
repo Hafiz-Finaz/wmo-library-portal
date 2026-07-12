@@ -7,9 +7,11 @@ const SUPABASE_ANON_KEY = "your-anon-key";
 // Set on window for global frontend access
 window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+window.useMockData = SUPABASE_URL.includes("your-project-id") || !SUPABASE_URL;
 
-if (typeof supabase !== 'undefined') {
+if (typeof supabase !== 'undefined' && !window.useMockData) {
   window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 } else {
-  console.warn("Supabase SDK not loaded yet. It will be initialized when the script loads.");
+  window.supabaseClient = null;
+  console.warn("Using offline mock database mode (Supabase URL/Key environment variables are placeholders).");
 }
