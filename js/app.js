@@ -136,10 +136,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (progress) progress.style.width = scrolled + "%";
 
     // Header padding toggle
-    if (winScroll > 50) {
-      header.classList.add("scrolled");
-    } else {
-      header.classList.remove("scrolled");
+    if (header) {
+      if (winScroll > 50) {
+        header.classList.add("scrolled");
+      } else {
+        header.classList.remove("scrolled");
+      }
     }
 
     // Back to top button visibility
