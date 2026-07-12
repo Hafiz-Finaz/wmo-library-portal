@@ -164,7 +164,10 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''),
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'phone', ''),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'student')
+    CASE
+      WHEN NEW.email = 'igalibrary@gmail.com' THEN 'admin'
+      ELSE COALESCE(NEW.raw_user_meta_data->>'role', 'student')
+    END
   );
   RETURN NEW;
 END;
@@ -322,3 +325,9 @@ INSERT INTO public.announcements (id, title, content, image) VALUES
   'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&q=80&w=600'
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- Ensure igalibrary@gmail.com is set as administrator
+UPDATE public.users
+SET role = 'admin'
+WHERE email = 'igalibrary@gmail.com';
+
