@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us - WMO Imam Gazzali Academy Library Council</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+
+  <div id="scroll-progress"></div>
+
+  <!-- Animated Loading Screen -->
+  <div id="loader-wrapper">
+    <div class="loader-logo">WMO IG Library</div>
+    <div class="spinner"></div>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo-wrapper">
+        <i class="fas fa-book-reader logo-icon"></i>
+        <span class="logo-text">WMO IG Library</span>
+      </a>
+      <div id="menu-toggle" class="menu-toggle" style="display:none;">
+        <i class="fas fa-bars"></i>
+      </div>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="/about.html" class="active" data-i18n="nav_about">About</a></li>
+        <li><a href="/books.html" data-i18n="nav_books">Books</a></li>
+        <li><a href="/categories.html" data-i18n="nav_categories">Categories</a></li>
+        <li><a href="/contact.html" data-i18n="nav_contact">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <select id="lang-select" class="lang-selector">
+          <option value="en">English</option>
+          <option value="ml">മലയാളം</option>
+          <option value="ar">العربية</option>
+        </select>
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme"><i class="fas fa-moon"></i></button>
+        <div id="auth-nav-action"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div style="padding-top: 110px;">
+    <div class="breadcrumbs">
+      <a href="/index.html">Home</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>About Library</span>
+    </div>
+  </div>
+
+  <!-- About Core Section -->
+  <section style="padding-top: 20px;">
+    <div class="hero-container" style="min-height: auto; padding: 0 20px;">
+      <div class="hero-content">
+        <span class="section-badge">Our Legacy</span>
+        <h2 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 20px;">Empowering Through Academic Excellence</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">WMO Imam Gazzali Academy was established to provide higher academic and religious learning. The Library Council plays a central role in offering digital learning opportunities to students, researchers, and community learners.</p>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">We leverage serverless infrastructure, digital book formats, reading progress trackers, and detailed reviews to make learning seamless and easily accessible for modern education.</p>
+      </div>
+      <div class="hero-image-wrapper">
+        <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=500" alt="Library Study">
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Values -->
+  <section style="background-color: var(--bg-secondary);">
+    <div class="section-header">
+      <span class="section-badge">Vision & Mission</span>
+      <h2 class="section-title">Our Operational Pillars</h2>
+      <p class="section-desc">We structure our digital platform around three core tenets of academic growth.</p>
+    </div>
+    <div class="card-grid">
+      <div class="glass-card text-center" style="padding: 40px 24px;">
+        <div class="stat-icon" style="margin: 0 auto 20px auto;"><i class="fas fa-globe"></i></div>
+        <h3 style="font-weight:700;margin-bottom:15px;">Global Reach</h3>
+        <p style="color: var(--text-secondary); font-size:0.95rem;">Empowering scholars inside and outside Wayanad to access research, local history, and references instantly.</p>
+      </div>
+      <div class="glass-card text-center" style="padding: 40px 24px;">
+        <div class="stat-icon" style="margin: 0 auto 20px auto;"><i class="fas fa-shield-alt"></i></div>
+        <h3 style="font-weight:700;margin-bottom:15px;">Open Knowledge</h3>
+        <p style="color: var(--text-secondary); font-size:0.95rem;">Providing high-quality free and open educational resources, research journals, and local documentation.</p>
+      </div>
+      <div class="glass-card text-center" style="padding: 40px 24px;">
+        <div class="stat-icon" style="margin: 0 auto 20px auto;"><i class="fas fa-laptop-code"></i></div>
+        <h3 style="font-weight:700;margin-bottom:15px;">Modern Interface</h3>
+        <p style="color: var(--text-secondary); font-size:0.95rem;">Adapting design paradigms like Glassmorphism, animations, PWA install capabilities, and dark modes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq">
+    <div class="section-header">
+      <span class="section-badge">FAQ</span>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <p class="section-desc">Got questions about digital borrowing, shelf locations, or memberships? Find quick answers below.</p>
+    </div>
+    <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+      <div class="glass-card">
+        <h3 style="font-size: 1.15rem; font-weight:700; margin-bottom: 10px;"><i class="fas fa-question-circle" style="color: var(--accent-primary); margin-right: 10px;"></i> How do I borrow a book?</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">Log in to your account, search for the book, and click the "Borrow" button. If the book is available, the request will be submitted to the librarian for approval. Once approved, you can read it online or collect the print edition from the designated shelf location.</p>
+      </div>
+      <div class="glass-card">
+        <h3 style="font-size: 1.15rem; font-weight:700; margin-bottom: 10px;"><i class="fas fa-question-circle" style="color: var(--accent-primary); margin-right: 10px;"></i> Can I download E-Books directly?</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">Yes, books with uploaded PDF digital copies can be previewed using our built-in PDF Reader or downloaded for offline study. Look for the "Download" or "Preview PDF" buttons in the details popup.</p>
+      </div>
+      <div class="glass-card">
+        <h3 style="font-size: 1.15rem; font-weight:700; margin-bottom: 10px;"><i class="fas fa-question-circle" style="color: var(--accent-primary); margin-right: 10px;"></i> How do I find print books in the library?</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">Every book record includes a "Shelf Location" attribute (e.g. Shelf B4, Almirah 2). You can locate the physical copies in the academy campus library using this index.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-info">
+        <a href="/index.html" class="logo-wrapper" style="margin-bottom:15px;">
+          <i class="fas fa-book-reader logo-icon"></i>
+          <span class="logo-text">WMO IG Library</span>
+        </a>
+        <p data-i18n="footer_desc">Empowering minds through quality academic resources and digital reading platforms.</p>
+        <div class="social-links">
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="footer-column">
+        <h4 data-i18n="footer_links">Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="/about.html">About Council</a></li>
+          <li><a href="/books.html">All E-books</a></li>
+          <li><a href="/categories.html">Category Indexes</a></li>
+          <li><a href="/contact.html">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="/books.html?language=Arabic">Arabic Collection</a></li>
+          <li><a href="/books.html?category=Research">Research Papers</a></li>
+          <li><a href="/about.html#faq">FAQ & Help</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4 data-i18n="footer_contact">Contact Info</h4>
+        <ul class="footer-links" style="color:var(--text-secondary);font-size:0.95rem;">
+          <li style="margin-bottom:10px;"><i class="fas fa-map-marker-alt" style="margin-right:10px;color:var(--accent-primary);"></i> Koolivayal, Wayanad, Kerala</li>
+          <li style="margin-bottom:10px;"><i class="fas fa-phone-alt" style="margin-right:10px;color:var(--accent-primary);"></i> +91 4936 200000</li>
+          <li style="margin-bottom:10px;"><i class="fas fa-envelope" style="margin-right:10px;color:var(--accent-primary);"></i> library@wmoigacademy.com</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 WMO Imam Gazzali Academy Library Council. All rights reserved.</p>
+      <p>Developed with <i class="fas fa-heart" style="color:var(--danger)"></i> for Vercel Deployment</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Back to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase/config.js"></script>
+  <script src="/supabase/auth.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

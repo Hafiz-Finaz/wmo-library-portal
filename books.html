@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library Catalog - WMO Imam Gazzali Academy Library Council</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+
+  <div id="scroll-progress"></div>
+
+  <!-- Animated Loading Screen -->
+  <div id="loader-wrapper">
+    <div class="loader-logo">WMO IG Library</div>
+    <div class="spinner"></div>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo-wrapper">
+        <i class="fas fa-book-reader logo-icon"></i>
+        <span class="logo-text">WMO IG Library</span>
+      </a>
+      <div id="menu-toggle" class="menu-toggle" style="display:none;">
+        <i class="fas fa-bars"></i>
+      </div>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="/about.html" data-i18n="nav_about">About</a></li>
+        <li><a href="/books.html" class="active" data-i18n="nav_books">Books</a></li>
+        <li><a href="/categories.html" data-i18n="nav_categories">Categories</a></li>
+        <li><a href="/contact.html" data-i18n="nav_contact">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <select id="lang-select" class="lang-selector">
+          <option value="en">English</option>
+          <option value="ml">മലയാളം</option>
+          <option value="ar">العربية</option>
+        </select>
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme"><i class="fas fa-moon"></i></button>
+        <div id="auth-nav-action"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div style="padding-top: 110px;">
+    <div class="breadcrumbs">
+      <a href="/index.html">Home</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Library Catalog</span>
+    </div>
+  </div>
+
+  <!-- Catalog Section -->
+  <section style="padding-top: 10px;">
+    <div class="section-header" style="margin-bottom: 30px;">
+      <span class="section-badge">Inventory</span>
+      <h2 class="section-title">Digital Library Catalog</h2>
+      <p class="section-desc">Search, filter, and discover academic E-books, papers, and resource materials.</p>
+    </div>
+
+    <!-- ADVANCED FILTER BAR -->
+    <div class="glass-card" style="max-width: 1200px; margin: 0 auto 40px auto; padding: 20px;">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; flex-wrap: wrap;" id="catalog-filter-row">
+        <!-- Live search -->
+        <div class="table-search" style="background: var(--bg-tertiary); width: 100%;">
+          <i class="fas fa-search"></i>
+          <input type="text" id="catalog-search-input" placeholder="Search by title, author, isbn..." style="width: 100%;">
+        </div>
+        <!-- Category Filter -->
+        <select id="catalog-category-select" class="admin-form-control" style="background: var(--bg-tertiary);">
+          <option value="all">All Categories</option>
+        </select>
+        <!-- Language Filter -->
+        <select id="catalog-language-select" class="admin-form-control" style="background: var(--bg-tertiary);">
+          <option value="all">All Languages</option>
+          <option value="English">English</option>
+          <option value="Malayalam">Malayalam</option>
+          <option value="Arabic">Arabic</option>
+        </select>
+        <!-- Sort Filter -->
+        <select id="catalog-sort-select" class="admin-form-control" style="background: var(--bg-tertiary);">
+          <option value="title-asc">Title (A-Z)</option>
+          <option value="title-desc">Title (Z-A)</option>
+          <option value="publication_year-desc">Newest Year</option>
+          <option value="downloads-desc">Most Popular</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Books Display Grid -->
+    <div class="card-grid" id="catalog-books-grid">
+      <!-- Populated dynamically by search.js -->
+    </div>
+
+    <!-- Pagination Container -->
+    <div id="catalog-pagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 50px; max-width: 1200px; margin-left: auto; margin-right: auto;">
+      <!-- Populated dynamically by search.js -->
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-info">
+        <a href="/index.html" class="logo-wrapper" style="margin-bottom:15px;">
+          <i class="fas fa-book-reader logo-icon"></i>
+          <span class="logo-text">WMO IG Library</span>
+        </a>
+        <p data-i18n="footer_desc">Empowering minds through quality academic resources and digital reading platforms.</p>
+        <div class="social-links">
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="footer-column">
+        <h4 data-i18n="footer_links">Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="/about.html">About Council</a></li>
+          <li><a href="/books.html">All E-books</a></li>
+          <li><a href="/categories.html">Category Indexes</a></li>
+          <li><a href="/contact.html">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="/books.html?language=Arabic">Arabic Collection</a></li>
+          <li><a href="/books.html?category=Research">Research Papers</a></li>
+          <li><a href="/about.html#faq">FAQ & Help</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4 data-i18n="footer_contact">Contact Info</h4>
+        <ul class="footer-links" style="color:var(--text-secondary);font-size:0.95rem;">
+          <li style="margin-bottom:10px;"><i class="fas fa-map-marker-alt" style="margin-right:10px;color:var(--accent-primary);"></i> Koolivayal, Wayanad, Kerala</li>
+          <li style="margin-bottom:10px;"><i class="fas fa-phone-alt" style="margin-right:10px;color:var(--accent-primary);"></i> +91 4936 200000</li>
+          <li style="margin-bottom:10px;"><i class="fas fa-envelope" style="margin-right:10px;color:var(--accent-primary);"></i> library@wmoigacademy.com</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 WMO Imam Gazzali Academy Library Council. All rights reserved.</p>
+      <p>Developed with <i class="fas fa-heart" style="color:var(--danger)"></i> for Vercel Deployment</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Back to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <!-- BOOK DETAILS MODAL -->
+  <div class="modal-overlay" id="book-details-modal">
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:25px;margin-bottom:25px;">
+        <img id="modal-book-cover" src="" alt="Book Cover" style="width:100%;height:auto;border-radius:10px;box-shadow:var(--card-shadow);object-fit:cover;">
+        <div>
+          <span class="section-badge" id="modal-book-category">Category</span>
+          <h2 id="modal-book-title" style="font-size:1.6rem;font-weight:800;margin:5px 0 10px 0;">Book Title</h2>
+          <p style="font-size:1rem;color:var(--text-secondary);margin-bottom:15px;">by <strong id="modal-book-author" style="color:var(--text-primary);">Author</strong></p>
+          
+          <div style="display:flex;gap:10px;margin-bottom:20px;">
+            <button id="modal-borrow-btn" class="btn btn-primary"><i class="fas fa-bookmark"></i> Borrow</button>
+            <button id="modal-read-btn" class="btn btn-secondary" style="display:none;"><i class="fas fa-book-open"></i> Preview PDF</button>
+            <button id="modal-download-btn" class="btn btn-secondary" style="display:none;"><i class="fas fa-download"></i> Download</button>
+            <button id="modal-favorite-btn" class="btn btn-icon" title="Add to Favorites"><i class="far fa-heart" style="color:var(--danger);"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border-color);padding-top:20px;margin-bottom:25px;">
+        <h3 style="font-size:1.15rem;margin-bottom:10px;font-weight:700;">Description</h3>
+        <p id="modal-book-desc" style="color:var(--text-secondary);font-size:0.95rem;line-height:1.6;margin-bottom:20px;"></p>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;font-size:0.9rem;background:var(--bg-tertiary);padding:15px;border-radius:10px;">
+          <div><strong>Publisher:</strong> <span id="modal-book-publisher" class="text-secondary"></span></div>
+          <div><strong>Year:</strong> <span id="modal-book-year" class="text-secondary"></span></div>
+          <div><strong>Language:</strong> <span id="modal-book-language" class="text-secondary"></span></div>
+          <div><strong>ISBN:</strong> <span id="modal-book-isbn" class="text-secondary"></span></div>
+          <div><strong>Shelf Location:</strong> <span id="modal-book-shelf" class="text-secondary"></span></div>
+          <div><strong>Available:</strong> <span id="modal-book-qty" class="text-secondary"></span></div>
+        </div>
+      </div>
+
+      <!-- QR Code and Reviews Grid -->
+      <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:20px;border-top:1px solid var(--border-color);padding-top:20px;margin-bottom:25px;">
+        <div class="text-center">
+          <h4 style="font-size:0.95rem;margin-bottom:10px;font-weight:700;">Scan QR Code</h4>
+          <img id="modal-book-qrcode" src="" alt="Book QR Code" style="width:110px;height:110px;border:1px solid var(--border-color);border-radius:6px;padding:5px;">
+        </div>
+        <div>
+          <h4 style="font-size:0.95rem;margin-bottom:10px;font-weight:700;">Book Ratings & Reviews</h4>
+          <div id="modal-reviews-list" style="max-height:150px;overflow-y:auto;margin-bottom:10px;">
+            <!-- Populated dynamically -->
+          </div>
+          <form id="submit-review-form" style="display:flex;gap:5px;flex-direction:column;">
+            <select id="review-rating" class="admin-form-control" style="padding:6px;font-size:0.8rem;" required>
+              <option value="">Rate book</option>
+              <option value="5">5 Stars</option>
+              <option value="4">4 Stars</option>
+              <option value="3">3 Stars</option>
+              <option value="2">2 Stars</option>
+              <option value="1">1 Star</option>
+            </select>
+            <input id="review-text" type="text" class="admin-form-control" style="padding:6px;font-size:0.8rem;" placeholder="Write a short review..." required>
+            <button type="submit" class="btn btn-secondary" style="padding:6px;font-size:0.8rem;width:100%;">Submit Review</button>
+          </form>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border-color);padding-top:20px;">
+        <h3 style="font-size:1.1rem;margin-bottom:15px;font-weight:700;">Related Books</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:15px;" id="modal-related-books">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BORROW BOOK CONFIRMATION MODAL -->
+  <div class="modal-overlay" id="borrow-confirm-modal">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+      <button class="modal-close">&times;</button>
+      <i class="fas fa-bookmark" style="font-size:3rem;color:var(--accent-primary);margin-bottom:15px;"></i>
+      <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:10px;">Confirm Borrowing</h3>
+      <p style="color:var(--text-secondary);margin-bottom:20px;">You are requesting to borrow:</p>
+      <h4 id="borrow-confirm-title" style="font-weight:700;font-size:1.15rem;margin-bottom:5px;"></h4>
+      <p id="borrow-confirm-author" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:20px;"></p>
+      
+      <div style="background:var(--bg-tertiary);padding:12px;border-radius:8px;margin-bottom:25px;font-size:0.9rem;">
+        <strong>Return Deadline:</strong> <span id="borrow-confirm-date"></span>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button id="confirm-borrow-btn" class="btn btn-primary" style="flex:1;">Submit Request</button>
+        <button onclick="closeModal('borrow-confirm-modal')" class="btn btn-secondary" style="flex:1;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF READER INNER PREVIEW MODAL -->
+  <div class="modal-overlay" id="pdf-reader-modal">
+    <div class="modal-content" style="max-width:900px;padding:20px;width:95%;">
+      <button class="modal-close">&times;</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-color);padding-bottom:15px;margin-bottom:15px;">
+        <h3 id="reader-title" style="font-weight:700;font-size:1.25rem;">E-Book Preview</h3>
+      </div>
+      <div style="width:100%;height:4px;background:var(--bg-tertiary);margin-bottom:15px;border-radius:10px;overflow:hidden;">
+        <div id="reader-progress-bar" style="width:0%;height:100%;background:var(--accent-gradient);"></div>
+      </div>
+      <div id="pdf-frame-container"></div>
+    </div>
+  </div>
+
+  <!-- Supabase & Script Hooks -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase/config.js"></script>
+  <script src="/supabase/auth.js"></script>
+  <script src="/supabase/database.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/books.js"></script>
+  <script src="/js/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "wmo-library-portal",
+  "version": "1.0.0",
+  "description": "Digital Library portal for WMO Imam Gazzali Academy",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

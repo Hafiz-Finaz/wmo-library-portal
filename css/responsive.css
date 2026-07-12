@@ -1,0 +1,254 @@
+/* ==========================================================================
+   WMO Imam Gazzali Academy Library - Responsive & RTL Stylesheet
+   ========================================================================== */
+
+/* RTL Support (for Arabic Language translation) */
+[dir="rtl"] {
+  font-family: 'Outfit', sans-serif;
+  text-align: right;
+}
+
+[dir="rtl"] .nav-container,
+[dir="rtl"] .footer-container,
+[dir="rtl"] .admin-header,
+[dir="rtl"] .sidebar-menu li a,
+[dir="rtl"] .stat-card {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .logo-wrapper {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .hero-container {
+  grid-template-columns: 0.8fr 1.2fr;
+}
+
+[dir="rtl"] .hero-content {
+  text-align: right;
+}
+
+[dir="rtl"] .search-wrapper {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .search-wrapper i {
+  margin-right: 20px;
+  margin-left: 10px;
+}
+
+[dir="rtl"] .hero-card-stat.pos-1 {
+  left: auto;
+  right: -20px;
+}
+
+[dir="rtl"] .hero-card-stat.pos-2 {
+  right: auto;
+  left: -10px;
+}
+
+[dir="rtl"] .admin-sidebar {
+  right: 0;
+  left: auto;
+  border-right: none;
+  border-left: 1px solid var(--border-color);
+}
+
+[dir="rtl"] .admin-main {
+  margin-left: 0;
+  margin-right: 260px;
+}
+
+[dir="rtl"] .stat-info {
+  text-align: right;
+}
+
+[dir="rtl"] th, [dir="rtl"] td {
+  text-align: right;
+}
+
+/* RESPONSIVE BREAKPOINTS */
+
+/* Tablet & Smaller (Max-width: 1024px) */
+@media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 40px;
+  }
+  
+  [dir="rtl"] .hero-container {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-content p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .search-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .admin-sidebar {
+    width: 80px;
+    padding: 20px 0;
+  }
+
+  .admin-sidebar .logo-text,
+  .admin-sidebar .sidebar-menu span,
+  .admin-sidebar .sidebar-footer span {
+    display: none;
+  }
+
+  .admin-sidebar .sidebar-menu li a {
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .admin-main {
+    margin-left: 80px;
+  }
+
+  [dir="rtl"] .admin-sidebar {
+    width: 80px;
+  }
+  
+  [dir="rtl"] .admin-main {
+    margin-right: 80px;
+    margin-left: 0;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+}
+
+/* Mobile Devices (Max-width: 768px) */
+@media (max-width: 768px) {
+  /* Header Nav Toggle */
+  .nav-links {
+    position: fixed;
+    top: 70px;
+    left: -100%;
+    width: 100%;
+    height: calc(100vh - 70px);
+    background: var(--bg-secondary);
+    flex-direction: column;
+    padding: 40px 20px;
+    transition: var(--transition-smooth);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .nav-links.open {
+    left: 0;
+  }
+
+  /* Hamburger Menu Icon */
+  .menu-toggle {
+    display: flex !important;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-primary);
+  }
+
+  .hero-content h1 {
+    font-size: 2.8rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero-image-wrapper {
+    max-width: 80%;
+    margin: 0 auto;
+  }
+
+  .hero-card-stat {
+    display: none; /* Hide floating widgets on mobile */
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .table-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+}
+
+/* Small Mobiles (Max-width: 480px) */
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 2.2rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .search-wrapper {
+    border-radius: 20px;
+    flex-direction: column;
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .search-wrapper i {
+    display: none;
+  }
+
+  .search-wrapper input {
+    width: 100%;
+    text-align: center;
+  }
+
+  .search-wrapper button {
+    width: 100%;
+    border-radius: 8px;
+  }
+}

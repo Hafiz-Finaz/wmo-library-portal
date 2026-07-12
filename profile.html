@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Settings - WMO Imam Gazzali Academy Library Council</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+
+  <div id="scroll-progress"></div>
+
+  <!-- Animated Loading Screen -->
+  <div id="loader-wrapper">
+    <div class="loader-logo">WMO IG Library</div>
+    <div class="spinner"></div>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo-wrapper">
+        <i class="fas fa-book-reader logo-icon"></i>
+        <span class="logo-text">WMO IG Library</span>
+      </a>
+      <div id="menu-toggle" class="menu-toggle" style="display:none;">
+        <i class="fas fa-bars"></i>
+      </div>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="/about.html" data-i18n="nav_about">About</a></li>
+        <li><a href="/books.html" data-i18n="nav_books">Books</a></li>
+        <li><a href="/categories.html" data-i18n="nav_categories">Categories</a></li>
+        <li><a href="/contact.html" data-i18n="nav_contact">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <select id="lang-select" class="lang-selector">
+          <option value="en">English</option>
+          <option value="ml">മലയാളം</option>
+          <option value="ar">العربية</option>
+        </select>
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme"><i class="fas fa-moon"></i></button>
+        <div id="auth-nav-action"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div style="padding-top: 110px;">
+    <div class="breadcrumbs">
+      <a href="/index.html">Home</a>
+      <i class="fas fa-chevron-right"></i>
+      <a href="/dashboard.html">Dashboard</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Profile Settings</span>
+    </div>
+  </div>
+
+  <!-- Profile Settings Panel -->
+  <section style="padding-top: 10px;">
+    <div class="hero-container" style="min-height: auto; align-items: start; max-width: 1200px; margin: 0 auto; gap: 40px; grid-template-columns: 0.8fr 2.2fr;">
+      
+      <!-- LEFT PROFILE INFO CARD -->
+      <div class="glass-card text-center" style="padding: 30px; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%;">
+        <div style="position: relative;">
+          <img id="profile-avatar-preview" src="" alt="Avatar" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent-primary); box-shadow: var(--card-shadow);">
+          <!-- Camera Overlay button for upload -->
+          <label for="profile-avatar-input" style="position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-primary); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--card-shadow);">
+            <i class="fas fa-camera" style="font-size: 0.85rem;"></i>
+          </label>
+          <input type="file" id="profile-avatar-input" style="display: none;" accept="image/*">
+        </div>
+        <div>
+          <h3 style="font-weight: 700; font-size: 1.3rem;">Settings</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">Manage account credentials</p>
+        </div>
+        <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+          <a href="/dashboard.html" class="btn btn-secondary" style="width: 100%; font-size: 0.9rem;"><i class="fas fa-chart-line"></i> Dashboard</a>
+          <a href="/profile.html" class="btn btn-primary" style="width: 100%; font-size: 0.9rem;"><i class="fas fa-user-cog"></i> Profile Settings</a>
+        </div>
+      </div>
+
+      <!-- RIGHT SETTINGS FORMS -->
+      <div style="display: flex; flex-direction: column; gap: 40px; width: 100%;">
+        
+        <!-- Profile details form -->
+        <div class="glass-card" style="padding: 30px;">
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 20px;"><i class="fas fa-id-card" style="color: var(--accent-primary); margin-right: 10px;"></i> Personal Information</h3>
+          <form id="profile-form">
+            <div class="admin-form-group">
+              <label for="profile-name">Full Name</label>
+              <input type="text" id="profile-name" class="admin-form-control" required>
+            </div>
+            <div class="form-row">
+              <div class="admin-form-group">
+                <label for="profile-phone">Phone Number</label>
+                <input type="tel" id="profile-phone" class="admin-form-control">
+              </div>
+              <div class="admin-form-group">
+                <label for="profile-email">Academic Email (Read-Only)</label>
+                <input type="email" id="profile-email" class="admin-form-control" readonly style="opacity: 0.7; cursor: not-allowed;">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Profile Info</button>
+          </form>
+        </div>
+
+        <!-- Security change password form -->
+        <div class="glass-card" style="padding: 30px;">
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 20px;"><i class="fas fa-key" style="color: var(--warning); margin-right: 10px;"></i> Change Password</h3>
+          <form id="dashboard-change-password-form">
+            <div class="form-row">
+              <div class="admin-form-group">
+                <label for="dashboard-new-password">New Password</label>
+                <input type="password" id="dashboard-new-password" class="admin-form-control" required placeholder="Minimum 6 characters">
+              </div>
+              <div class="admin-form-group">
+                <label for="dashboard-confirm-password">Confirm Password</label>
+                <input type="password" id="dashboard-confirm-password" class="admin-form-control" required placeholder="Repeat new password">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Change Password</button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-info">
+        <a href="/index.html" class="logo-wrapper" style="margin-bottom:15px;">
+          <i class="fas fa-book-reader logo-icon"></i>
+          <span class="logo-text">WMO IG Library</span>
+        </a>
+        <p data-i18n="footer_desc">Empowering minds through quality academic resources and digital reading platforms.</p>
+        <div class="social-links">
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="footer-column">
+        <h4 data-i18n="footer_links">Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="/about.html">About Council</a></li>
+          <li><a href="/books.html">All E-books</a></li>
+          <li><a href="/categories.html">Category Indexes</a></li>
+          <li><a href="/contact.html">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="/books.html?language=Arabic">Arabic Collection</a></li>
+          <li><a href="/books.html?category=Research">Research Papers</a></li>
+          <li><a href="/about.html#faq">FAQ & Help</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4 data-i18n="footer_contact">Contact Info</h4>
+        <ul class="footer-links" style="color:var(--text-secondary);font-size:0.95rem;">
+          <li style="margin-bottom:10px;"><i class="fas fa-map-marker-alt" style="margin-right:10px;color:var(--accent-primary);"></i> Koolivayal, Wayanad, Kerala</li>
+          <li style="margin-bottom:10px;"><i class="fas fa-phone-alt" style="margin-right:10px;color:var(--accent-primary);"></i> +91 4936 200000</li>
+          <li style="margin-bottom:10px;"><i class="fas fa-envelope" style="margin-right:10px;color:var(--accent-primary);"></i> library@wmoigacademy.com</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 WMO Imam Gazzali Academy Library Council. All rights reserved.</p>
+      <p>Developed with <i class="fas fa-heart" style="color:var(--danger)"></i> for Vercel Deployment</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Back to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase/config.js"></script>
+  <script src="/supabase/auth.js"></script>
+  <script src="/supabase/database.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
