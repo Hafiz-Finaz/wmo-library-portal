@@ -263,7 +263,7 @@ async function loadAdminBooksModule() {
   } else {
     const { data: bData, error } = await window.supabaseClient
       .from('books')
-      .select('*, categories(category_name)')
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -281,7 +281,7 @@ async function loadAdminBooksModule() {
       <td><img src="${book.cover_image || '/assets/images/book-placeholder.jpg'}" style="width:35px;height:50px;object-fit:cover;border-radius:4px;"></td>
       <td><strong>${book.title}</strong><br><span style="font-size:0.8rem;color:var(--text-muted);">${book.subtitle || ''}</span></td>
       <td>${book.author}</td>
-      <td>${book.categories?.category_name || 'N/A'}</td>
+      <td>${book.category || 'N/A'}</td>
       <td>${book.views || 0}</td>
       <td>${book.downloads || 0}</td>
       <td><span class="status-pill ${book.featured ? 'approved' : 'rejected'}">${book.featured ? 'Yes' : 'No'}</span></td>
@@ -315,8 +315,8 @@ async function populateBookModalCategoryDropdown() {
   const categories = await window.supabaseDb.getCategories();
   categories.forEach(cat => {
     const opt = document.createElement("option");
-    opt.value = cat.id;
-    opt.textContent = cat.category_name;
+    opt.value = cat.name;
+    opt.textContent = cat.name;
     select.appendChild(opt);
   });
 }
@@ -424,7 +424,7 @@ async function handleBookSubmit(e) {
       title,
       subtitle,
       author,
-      category_id: categoryId || null,
+      category: document.getElementById("book-form-category").selectedOptions[0]?.text || "",
       isbn,
       publisher,
       publication_year: publicationYear,
