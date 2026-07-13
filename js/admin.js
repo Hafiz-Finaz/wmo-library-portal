@@ -2,6 +2,15 @@
    WMO Imam Gazzali Academy Library - Admin Portal Controller
    ========================================================================== */
 
+// Modal closing helper
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove("open");
+  }
+}
+window.closeModal = closeModal;
+
 document.addEventListener("DOMContentLoaded", async () => {
   // Check Admin Authentication
   const user = await window.supabaseAuth.requireAuth(['admin']);

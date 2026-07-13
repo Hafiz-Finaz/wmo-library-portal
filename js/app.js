@@ -327,7 +327,7 @@ function showToast(message, type = "info") {
 
 // PWA Service Worker Registration
 function registerServiceWorker() {
-  if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
+  if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => console.log('Service Worker registered successfully!', reg.scope))
       .catch(err => console.warn('Service Worker registration failed:', err));

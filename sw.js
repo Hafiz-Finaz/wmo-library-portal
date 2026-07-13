@@ -1,6 +1,6 @@
 // WMO Academy Library Service Worker (PWA Offline Caching)
 
-const CACHE_NAME = 'wmo-library-cache-v2';
+const CACHE_NAME = 'wmo-library-cache-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
