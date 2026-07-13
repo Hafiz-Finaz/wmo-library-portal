@@ -179,7 +179,7 @@ const supabaseDb = {
     try {
       let query = window.supabaseClient
         .from('books')
-        .select('*, categories(category_name)', { count: 'exact' });
+        .select('*', { count: 'exact' });
 
       // Apply filters
       if (categoryId && categoryId !== 'all') {
@@ -235,7 +235,7 @@ const supabaseDb = {
     try {
       const { data, error } = await window.supabaseClient
         .from('books')
-        .select('*, categories(category_name)')
+        .select('*')
         .eq('id', bookId)
         .single();
       if (error) throw error;
