@@ -532,7 +532,7 @@ const supabaseDb = {
     }
 
     try {
-      const { error } = await window.supabaseClient.from('categories').insert({ category_name: name, icon: icon || 'fa-book' });
+      const { error } = await window.supabaseClient.from('categories').insert({ name: name, icon: icon || 'fa-book' });
       if (error) throw error;
       return { success: true };
     } catch (error) {
