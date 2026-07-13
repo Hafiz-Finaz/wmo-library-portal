@@ -104,7 +104,7 @@ const supabaseDb = {
       const { data, error } = await window.supabaseClient
         .from('categories')
         .select('*')
-        .order('category_name', { ascending: true });
+        .order('name', { ascending: true });
       if (error) throw error;
       return data;
     } catch (error) {
