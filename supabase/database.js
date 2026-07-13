@@ -140,7 +140,7 @@ const supabaseDb = {
       }
       if (search) {
         const query = search.toLowerCase();
-        books = books.filter(b => 
+        books = books.filter(b =>
           b.title.toLowerCase().includes(query) ||
           (b.subtitle && b.subtitle.toLowerCase().includes(query)) ||
           b.author.toLowerCase().includes(query) ||
@@ -183,7 +183,7 @@ const supabaseDb = {
 
       // Apply filters
       if (categoryId && categoryId !== 'all') {
-        query = query.eq('category_id', categoryId);
+        query = query.eq('category', categoryId);
       }
       if (language && language !== 'all') {
         query = query.eq('language', language);
@@ -258,7 +258,7 @@ const supabaseDb = {
       const { data, error } = await window.supabaseClient
         .from('books')
         .select('*')
-        .eq('category_id', categoryId)
+        .eq('category', categoryId)
         .neq('id', currentBookId)
         .neq('status', 'archived')
         .limit(limit);
@@ -533,8 +533,8 @@ const supabaseDb = {
 
     try {
       const { error } = await window.supabaseClient.from('categories').insert({
-    name: name
-});
+        name: name
+      });
       if (error) throw error;
       return { success: true };
     } catch (error) {
