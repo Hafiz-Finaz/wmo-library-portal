@@ -5,7 +5,26 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Check Admin Authentication
   const user = await window.supabaseAuth.requireAuth(['admin']);
-  if (!user) return; // Stop executing if not admin
+  if (!user) return;
+  // Bind modal close buttons
+  document.querySelectorAll(".modal-overlay").forEach(modal => {
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeModal(modal.id);
+      }
+    });
+
+    const closeBtn = modal.querySelector(".modal-close");
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        console.log("Close button clicked:", modal.id);
+        closeModal(modal.id);
+      });
+    }
+
+  }); // Stop executing if not admin
 
   // Sync Nav Sidebar Active States
   syncSidebarActiveState();
@@ -39,7 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function syncSidebarActiveState() {
   const currentPath = window.location.pathname;
   const menuLinks = document.querySelectorAll(".sidebar-menu li");
-  
+
   menuLinks.forEach(li => {
     const a = li.querySelector("a");
     if (a && currentPath.includes(a.getAttribute("href"))) {
@@ -54,7 +73,7 @@ function syncSidebarActiveState() {
 function initMobileSidebar() {
   const adminHeader = document.querySelector(".admin-header");
   const sidebar = document.querySelector(".admin-sidebar");
-  
+
   if (adminHeader && sidebar) {
     if (document.getElementById("admin-sidebar-toggle")) return;
 
@@ -64,7 +83,7 @@ function initMobileSidebar() {
     toggleBtn.className = "btn-icon admin-sidebar-toggle";
     toggleBtn.setAttribute("aria-label", "Toggle Sidebar");
     toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
-    
+
     // Insert toggle button before the header title
     const headerTitle = adminHeader.querySelector(".admin-header-title");
     if (headerTitle) {
@@ -237,7 +256,7 @@ async function loadAdminBooksModule() {
       .from('books')
       .select('*, categories(category_name)')
       .order('created_at', { ascending: false });
-    
+
     if (error) {
       showToast(error.message, "error");
       return;
@@ -283,7 +302,7 @@ async function populateBookModalCategoryDropdown() {
   const select = document.getElementById("book-form-category");
   if (!select) return;
   select.innerHTML = '<option value="">Select Category</option>';
-  
+
   const categories = await window.supabaseDb.getCategories();
   categories.forEach(cat => {
     const opt = document.createElement("option");
@@ -297,11 +316,18 @@ function openAddBookModal() {
   const modal = document.getElementById("admin-book-modal");
   if (!modal) return;
   modal.classList.add("open");
-  
+  const closeBtn = modal.querySelector(".modal-close");
+
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      modal.classList.remove("open");
+    };
+  }
+
   document.getElementById("modal-form-title").textContent = "Add New E-Book";
   document.getElementById("add-book-form").reset();
   document.getElementById("book-form-id").value = "";
-  
+
   // Set default check state
   document.getElementById("book-form-featured").checked = false;
 }
@@ -352,7 +378,7 @@ async function handleBookSubmit(e) {
   const tags = document.getElementById("book-form-tags").value.trim();
   const featured = document.getElementById("book-form-featured").checked;
   const description = document.getElementById("book-form-desc").value.trim();
-  
+
   const coverFile = document.getElementById("book-form-cover").files[0];
   const pdfFile = document.getElementById("book-form-pdf").files[0];
 
@@ -544,7 +570,7 @@ async function loadAdminSettingsModule() {
   // Clean listener
   const newForm = form.cloneNode(true);
   form.parentNode.replaceChild(newForm, form);
-  
+
   newForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const submitBtn = e.target.querySelector("button[type='submit']");
