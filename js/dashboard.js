@@ -2,7 +2,7 @@
    WMO Imam Gazzali Academy Library - User Dashboard Portal Handler
    ========================================================================== */
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function initDashboard() {
   // Require Authentication
   const user = await window.supabaseAuth.requireAuth();
   if (!user) return; // Exit if not logged in (will redirect inside requireAuth)
@@ -15,7 +15,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (document.getElementById("profile-form")) {
     loadProfilePortal(user);
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initDashboard);
+} else {
+  initDashboard();
+}
 
 // --- DASHBOARD PORTAL ---
 async function loadDashboardPortal(user) {

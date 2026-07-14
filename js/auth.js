@@ -2,7 +2,7 @@
    WMO Imam Gazzali Academy Library - Authentication Forms Handler
    ========================================================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+function initAuth() {
   // Check if user is already logged in, redirect to admin dashboard
   const userRole = localStorage.getItem('user_role');
   if (userRole === 'admin' && (window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('register.html'))) {
@@ -14,6 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("login-form");
   if (loginForm) {
     loginForm.addEventListener("submit", handleLoginSubmit);
+  }
+
+  // Bind register form
+  const registerForm = document.getElementById("register-form");
+  if (registerForm) {
+    registerForm.addEventListener("submit", handleRegisterSubmit);
   }
 
   // Bind forgot password form
@@ -47,7 +53,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Check if we are in the recovery flow
   checkPasswordRecoveryFlow();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAuth);
+} else {
+  initAuth();
+}
 
 // LOGIN ACTION (Only Admins are permitted entry to the Dashboard)
 async function handleLoginSubmit(e) {
@@ -179,3 +191,50 @@ function setLoadingState(btn, isLoading) {
 }
 
 window.toggleAuthContainers = toggleAuthContainers;
+
+// REGISTER ACTION
+async function handleRegisterSubmit(e) {
+  e.preventDefault();
+  const fullName = document.getElementById("register-name").value.trim();
+  const email = document.getElementById("register-email").value.trim();
+  const phone = document.getElementById("register-phone").value.trim();
+  const password = document.getElementById("register-password").value;
+  const confirm = document.getElementById("register-confirm").value;
+  const role = document.getElementById("register-role").value;
+  const submitBtn = e.target.querySelector("button[type='submit']");
+
+  if (!fullName || !email || !password || !confirm) {
+    showToast("Please fill in all required fields", "warning");
+    return;
+  }
+
+  if (password.length < 6) {
+    showToast("Password must be at least 6 characters", "warning");
+    return;
+  }
+
+  if (password !== confirm) {
+    showToast("Passwords do not match", "error");
+    return;
+  }
+
+  setLoadingState(submitBtn, true);
+
+  const res = await window.supabaseAuth.signUp(email, password, fullName, phone, role);
+  if (res.success) {
+    showToast("Registration successful! Redirecting to login...", "success");
+    e.target.reset();
+    setTimeout(() => {
+      window.location.href = '/login.html';
+    }, 2000);
+  } else {
+    showToast(res.error, "error");
+  }
+  setLoadingState(submitBtn, false);
+}
+
+// Export functions globally
+window.handleLoginSubmit = handleLoginSubmit;
+window.handleRegisterSubmit = handleRegisterSubmit;
+window.handleForgotPasswordSubmit = handleForgotPasswordSubmit;
+window.handleUpdatePasswordSubmit = handleUpdatePasswordSubmit;

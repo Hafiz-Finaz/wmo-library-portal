@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports & Backups - Admin Portal</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+
+  <!-- Scroll Progress Bar -->
+  <div id="scroll-progress"></div>
+
+  <!-- Animated Loading Screen -->
+  <div id="loader-wrapper">
+    <div class="loader-logo">WMO IG Library</div>
+    <div class="spinner"></div>
+  </div>
+
+  <div class="admin-wrapper">
+    
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <a href="/index.html" class="logo-wrapper">
+          <i class="fas fa-book-reader logo-icon"></i>
+          <span class="logo-text" style="font-size: 1.15rem;">WMO IG Admin</span>
+        </a>
+      </div>
+      <ul class="sidebar-menu">
+        <li><a href="/admin/index.html"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+        <li><a href="/admin/books.html"><i class="fas fa-book"></i> <span>Books Management</span></a></li>
+        <li><a href="/admin/categories.html"><i class="fas fa-tags"></i> <span>Categories</span></a></li>
+        <li><a href="/admin/users.html"><i class="fas fa-users"></i> <span>Members</span></a></li>
+        <li><a href="/admin/messages.html"><i class="fas fa-envelope"></i> <span>Messages</span></a></li>
+        <li class="active"><a href="/admin/reports.html"><i class="fas fa-file-invoice"></i> <span>Reports & Backups</span></a></li>
+        <li><a href="/admin/settings.html"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <a href="javascript:void(0)" onclick="window.handleLogout()"><i class="fas fa-sign-out-alt"></i> <span>Log Out</span></a>
+      </div>
+    </aside>
+
+    <!-- MAIN WINDOW -->
+    <main class="admin-main">
+      
+      <!-- Top header bar -->
+      <div class="admin-header">
+        <div class="admin-header-title">
+          <h2>Database Exports & Reports</h2>
+          <p>Download library statistics, catalog lists, and full JSON database backups</p>
+        </div>
+        <div class="admin-header-actions">
+          <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme"><i class="fas fa-moon"></i></button>
+        </div>
+      </div>
+
+      <!-- REPORTS BOX -->
+      <div id="admin-reports-container" class="hero-container" style="min-height: auto; align-items: start; max-width: 1000px; margin: 0 auto; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        
+        <!-- Book Export -->
+        <div class="glass-card text-center" style="padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+          <div class="stat-icon" style="background: rgba(79, 70, 229, 0.1); color: var(--accent-primary);"><i class="fas fa-file-csv"></i></div>
+          <h3 style="font-weight: 700; font-size: 1.25rem;">Export Books Catalog</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Download full spreadsheet CSV list of E-books inventory, authors, categories, views, and downloads stats.</p>
+          <button id="btn-export-books" class="btn btn-primary" style="width: 100%; margin-top: 10px;"><i class="fas fa-download"></i> Download CSV</button>
+        </div>
+
+        <!-- Users Export -->
+        <div class="glass-card text-center" style="padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+          <div class="stat-icon" style="background: rgba(6, 182, 212, 0.1); color: var(--accent-secondary);"><i class="fas fa-users-cog"></i></div>
+          <h3 style="font-weight: 700; font-size: 1.25rem;">Export Scholar List</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Download full spreadsheet CSV report of registered scholars, email logins, contact numbers, and access roles.</p>
+          <button id="btn-export-users" class="btn btn-primary" style="width: 100%; margin-top: 10px;"><i class="fas fa-download"></i> Download CSV</button>
+        </div>
+
+        <!-- Full Backup JSON -->
+        <div class="glass-card text-center" style="padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+          <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);"><i class="fas fa-database"></i></div>
+          <h3 style="font-weight: 700; font-size: 1.25rem;">Full Database Backup</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Generate and download a single JSON backup copy containing all books, categories, and registered members profiles.</p>
+          <button id="btn-export-backup" class="btn btn-secondary" style="width: 100%; margin-top: 10px;"><i class="fas fa-cloud-download-alt"></i> Export JSON Backup</button>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase/config.js"></script>
+  <script src="/supabase/auth.js"></script>
+  <script src="/supabase/database.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

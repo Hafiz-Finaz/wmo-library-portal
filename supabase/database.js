@@ -91,6 +91,33 @@ if (window.useMockData) {
   if (!localStorage.getItem('mock_messages')) {
     localStorage.setItem('mock_messages', JSON.stringify([]));
   }
+  if (!localStorage.getItem('mock_borrows')) {
+    localStorage.setItem('mock_borrows', JSON.stringify([
+      {
+        id: 'b1',
+        user_id: 'mock-admin-id',
+        book_id: '101',
+        borrowed_date: new Date(Date.now() - 3 * 86400000).toISOString(),
+        due_date: new Date(Date.now() + 11 * 86400000).toISOString(),
+        status: 'approved'
+      }
+    ]));
+  }
+  if (!localStorage.getItem('mock_wishlist')) {
+    localStorage.setItem('mock_wishlist', JSON.stringify(['102']));
+  }
+  if (!localStorage.getItem('mock_notifications')) {
+    localStorage.setItem('mock_notifications', JSON.stringify([
+      {
+        id: 'n1',
+        user_id: 'mock-admin-id',
+        title: 'Welcome to Digital Library Portal',
+        message: 'Explore and read digital E-Books online instantly.',
+        is_read: false,
+        created_at: new Date().toISOString()
+      }
+    ]));
+  }
 }
 
 const supabaseDb = {
@@ -104,7 +131,7 @@ const supabaseDb = {
       const { data, error } = await window.supabaseClient
         .from('categories')
         .select('*')
-        .order('name', { ascending: true });
+        .order('category_name', { ascending: true });
       if (error) throw error;
       return data;
     } catch (error) {
@@ -179,11 +206,11 @@ const supabaseDb = {
     try {
       let query = window.supabaseClient
         .from('books')
-        .select('*', { count: 'exact' });
+        .select('*, categories(category_name)', { count: 'exact' });
 
       // Apply filters
       if (categoryId && categoryId !== 'all') {
-        query = query.eq('category', categoryId);
+        query = query.eq('category_id', categoryId);
       }
       if (language && language !== 'all') {
         query = query.eq('language', language);
@@ -197,9 +224,6 @@ const supabaseDb = {
       if (search) {
         query = query.or(`title.ilike.%${search}%,subtitle.ilike.%${search}%,author.ilike.%${search}%,isbn.ilike.%${search}%,publisher.ilike.%${search}%,tags.ilike.%${search}%`);
       }
-
-      // Hide archived books for public view
-      query = query.neq('status', 'archived');
 
       // Sorting
       let asc = order === 'asc';
@@ -235,7 +259,7 @@ const supabaseDb = {
     try {
       const { data, error } = await window.supabaseClient
         .from('books')
-        .select('*')
+        .select('*, categories(category_name)')
         .eq('id', bookId)
         .single();
       if (error) throw error;
@@ -257,10 +281,9 @@ const supabaseDb = {
     try {
       const { data, error } = await window.supabaseClient
         .from('books')
-        .select('*')
-        .eq('category', categoryId)
+        .select('*, categories(category_name)')
+        .eq('category_id', categoryId)
         .neq('id', currentBookId)
-        .neq('status', 'archived')
         .limit(limit);
       if (error) throw error;
       return data;
@@ -533,7 +556,7 @@ const supabaseDb = {
 
     try {
       const { error } = await window.supabaseClient.from('categories').insert({
-        name: name
+        category_name: name
       });
       if (error) throw error;
       return { success: true };
@@ -556,6 +579,101 @@ const supabaseDb = {
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
+    }
+  },
+
+  // --- BORROWS ---
+  async getUserBorrows(userId) {
+    if (window.useMockData) {
+      const borrows = JSON.parse(localStorage.getItem('mock_borrows') || '[]');
+      const books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      return borrows
+        .filter(b => b.user_id === userId)
+        .map(b => ({
+          ...b,
+          books: books.find(book => book.id === b.book_id)
+        }))
+        .filter(b => b.books);
+    }
+
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('borrows')
+        .select('*, books(*)')
+        .eq('user_id', userId);
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching user borrows:", error.message);
+      return [];
+    }
+  },
+
+  // --- WISHLIST ---
+  async getWishlist(userId) {
+    if (window.useMockData) {
+      const wishlistIds = JSON.parse(localStorage.getItem('mock_wishlist') || '[]');
+      const books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      return books.filter(b => wishlistIds.includes(b.id));
+    }
+
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('wishlist')
+        .select('*, books(*)')
+        .eq('user_id', userId);
+      if (error) throw error;
+      return (data || []).map(w => w.books).filter(Boolean);
+    } catch (error) {
+      console.error("Error fetching wishlist:", error.message);
+      return [];
+    }
+  },
+
+  // --- NOTIFICATIONS ---
+  async getNotifications(userId) {
+    if (window.useMockData) {
+      const notifications = JSON.parse(localStorage.getItem('mock_notifications') || '[]');
+      return notifications
+        .filter(n => n.user_id === userId)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching notifications:", error.message);
+      return [];
+    }
+  },
+
+  async markNotificationRead(notifId) {
+    if (window.useMockData) {
+      const notifications = JSON.parse(localStorage.getItem('mock_notifications') || '[]');
+      const idx = notifications.findIndex(n => n.id === notifId);
+      if (idx !== -1) {
+        notifications[idx].is_read = true;
+        localStorage.setItem('mock_notifications', JSON.stringify(notifications));
+      }
+      return true;
+    }
+
+    try {
+      const { error } = await window.supabaseClient
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notifId);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error("Error marking notification read:", error.message);
+      return false;
     }
   }
 };

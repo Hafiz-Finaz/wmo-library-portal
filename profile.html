@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Settings - WMO Imam Gazzali Academy Library Council</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+
+  <!-- Scroll Progress Bar -->
+  <div id="scroll-progress"></div>
+
+  <!-- Animated Loading Screen -->
+  <div id="loader-wrapper">
+    <div class="loader-logo">WMO IG Library</div>
+    <div class="spinner"></div>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo-wrapper">
+        <i class="fas fa-book-reader logo-icon"></i>
+        <span class="logo-text">WMO IG Library</span>
+      </a>
+      <div id="menu-toggle" class="menu-toggle" style="display:none;">
+        <i class="fas fa-bars"></i>
+      </div>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="/about.html" data-i18n="nav_about">About</a></li>
+        <li><a href="/books.html" data-i18n="nav_books">Books</a></li>
+        <li><a href="/categories.html" data-i18n="nav_categories">Categories</a></li>
+        <li><a href="/contact.html" data-i18n="nav_contact">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <select id="lang-select" class="lang-selector">
+          <option value="en">English</option>
+          <option value="ml">മലയാളം</option>
+          <option value="ar">العربية</option>
+        </select>
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme"><i class="fas fa-moon"></i></button>
+        <div id="auth-nav-action"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div style="padding-top: 110px;">
+    <div class="breadcrumbs">
+      <a href="/index.html">Home</a>
+      <i class="fas fa-chevron-right"></i>
+      <a href="/dashboard.html">Dashboard</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Profile Settings</span>
+    </div>
+  </div>
+
+  <section style="padding-top: 10px;">
+    <div class="hero-container" style="min-height: auto; align-items: start; max-width: 1200px; margin: 0 auto; gap: 30px; grid-template-columns: 1fr 3fr;">
+      
+      <!-- SIDE PANEL (USER CARD) -->
+      <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+        <div class="glass-card text-center" style="padding: 30px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+          <div style="position: relative;">
+            <img id="profile-avatar-preview" src="" alt="Avatar" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-primary); box-shadow: var(--card-shadow);">
+            <label for="profile-avatar-input" style="position: absolute; bottom: 0; right: 0; background: var(--accent-gradient); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--card-shadow);">
+              <i class="fas fa-camera" style="font-size: 0.8rem;"></i>
+            </label>
+            <input type="file" id="profile-avatar-input" style="display: none;" accept="image/*">
+          </div>
+          <div>
+            <h3 style="font-weight: 800; font-size: 1.25rem;">Settings</h3>
+            <span class="status-pill approved" style="font-size: 0.75rem; font-weight: 700; padding: 4px 10px; display: inline-block; margin-top: 8px;">Reader Settings</span>
+          </div>
+          <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 15px; display: flex; flex-direction: column; gap: 10px; text-align: left;">
+            <a href="/dashboard.html" class="btn btn-secondary" style="width: 100%; text-align: left; justify-content: start; font-size: 0.9rem;"><i class="fas fa-tachometer-alt" style="margin-right:10px;"></i> Dashboard</a>
+            <a href="/profile.html" class="btn btn-primary" style="width: 100%; text-align: left; justify-content: start; font-size: 0.9rem;"><i class="fas fa-user-cog" style="margin-right:10px;"></i> Profile Settings</a>
+            <button onclick="window.handleLogout()" class="btn btn-secondary" style="width: 100%; text-align: left; justify-content: start; font-size: 0.9rem; color: var(--danger);"><i class="fas fa-sign-out-alt" style="margin-right:10px;"></i> Log Out</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN CONFIG WINDOW -->
+      <div style="display: flex; flex-direction: column; gap: 30px; width: 100%;">
+        
+        <!-- Profile info -->
+        <div class="glass-card" style="padding: 30px;">
+          <h3 style="font-weight: 800; font-size: 1.4rem; margin-bottom: 20px;"><i class="fas fa-id-card" style="color: var(--accent-primary); margin-right: 10px;"></i> Profile Information</h3>
+          <form id="profile-form">
+            <div class="admin-form-group">
+              <label for="profile-name">Full Name</label>
+              <input type="text" id="profile-name" class="admin-form-control" required placeholder="Enter full name">
+            </div>
+
+            <div class="form-row">
+              <div class="admin-form-group">
+                <label for="profile-email">Academic Email</label>
+                <input type="email" id="profile-email" class="admin-form-control" disabled style="cursor: not-allowed; opacity: 0.6;">
+              </div>
+              <div class="admin-form-group">
+                <label for="profile-phone">Phone Number</label>
+                <input type="tel" id="profile-phone" class="admin-form-control" placeholder="Enter contact number">
+              </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Update Profile Details</button>
+          </form>
+        </div>
+
+        <!-- Security / Password Update -->
+        <div class="glass-card" style="padding: 30px;">
+          <h3 style="font-weight: 800; font-size: 1.4rem; margin-bottom: 20px;"><i class="fas fa-key" style="color: var(--warning); margin-right: 10px;"></i> Change Password</h3>
+          <form id="dashboard-change-password-form">
+            <div class="form-row">
+              <div class="admin-form-group">
+                <label for="dashboard-new-password">New Password</label>
+                <input type="password" id="dashboard-new-password" class="admin-form-control" required placeholder="Minimum 6 characters">
+              </div>
+              <div class="admin-form-group">
+                <label for="dashboard-confirm-password">Confirm New Password</label>
+                <input type="password" id="dashboard-confirm-password" class="admin-form-control" required placeholder="Repeat new password">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-secondary" style="margin-top: 10px;">Save New Password</button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase/config.js"></script>
+  <script src="/supabase/auth.js"></script>
+  <script src="/supabase/database.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

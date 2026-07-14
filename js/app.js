@@ -87,7 +87,7 @@ const i18n = {
   }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+function initApp() {
   // 1. Remove Loader Screen
   const loader = document.getElementById("loader-wrapper");
   if (loader) {
@@ -185,7 +185,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 7. Register PWA Service Worker
   registerServiceWorker();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 
 // Update Theme Icon UI
 function updateThemeIcon(theme) {
@@ -230,6 +236,11 @@ async function updateNavAuthenticationStates() {
   if (role === 'admin') {
     authNav.innerHTML = `
       <a href="/admin/index.html" class="btn btn-secondary" style="font-weight:600;margin-right:10px;"><i class="fas fa-toolbox"></i> Admin Panel</a>
+      <button onclick="handleLogout()" class="btn btn-icon" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+    `;
+  } else if (role === 'student') {
+    authNav.innerHTML = `
+      <a href="/dashboard.html" class="btn btn-secondary" style="font-weight:600;margin-right:10px;"><i class="fas fa-user"></i> Dashboard</a>
       <button onclick="handleLogout()" class="btn btn-icon" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
     `;
   } else {
@@ -327,10 +338,19 @@ function showToast(message, type = "info") {
 
 // PWA Service Worker Registration
 function registerServiceWorker() {
-  if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker registered successfully!', reg.scope))
-      .catch(err => console.warn('Service Worker registration failed:', err));
+  if ('serviceWorker' in navigator) {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) {
+          registration.unregister();
+          console.log('Service Worker unregistered on local dev');
+        }
+      });
+    } else {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered successfully!', reg.scope))
+        .catch(err => console.warn('Service Worker registration failed:', err));
+    }
   }
 }
 

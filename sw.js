@@ -1,6 +1,6 @@
 // WMO Academy Library Service Worker (PWA Offline Caching)
 
-const CACHE_NAME = 'wmo-library-cache-v3';
+const CACHE_NAME = 'wmo-library-cache-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -54,6 +54,11 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Bypass caching for configuration and database files
+  if (event.request.url.includes('/supabase/')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -79,7 +84,8 @@ self.addEventListener('fetch', event => {
         });
       }).catch(() => {
         // Return offline fallback if offline and cache misses
-        if (event.request.headers.get('accept').includes('text/html')) {
+        const acceptHeader = event.request.headers.get('accept');
+        if (acceptHeader && acceptHeader.includes('text/html')) {
           return caches.match('/index.html');
         }
       })

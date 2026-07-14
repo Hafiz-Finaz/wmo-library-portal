@@ -331,3 +331,58 @@ UPDATE public.users
 SET role = 'admin'
 WHERE email = 'igalibrary@gmail.com';
 
+-- 7. BORROWS TABLE
+CREATE TABLE IF NOT EXISTS public.borrows (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    book_id UUID REFERENCES public.books(id) ON DELETE CASCADE,
+    borrowed_date TIMESTAMPTZ DEFAULT NOW(),
+    due_date TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '14 days'),
+    returned_date TIMESTAMPTZ,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned', 'overdue')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 8. WISHLIST TABLE
+CREATE TABLE IF NOT EXISTS public.wishlist (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    book_id UUID REFERENCES public.books(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, book_id)
+);
+
+-- 9. NOTIFICATIONS TABLE
+CREATE TABLE IF NOT EXISTS public.notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE public.borrows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.wishlist ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Borrows Policies
+CREATE POLICY "Allow users to read own borrows" ON public.borrows
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Allow users to insert borrow requests" ON public.borrows
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Allow admin to manage all borrows" ON public.borrows
+    FOR ALL USING (
+        EXISTS (SELECT 1 FROM public.users WHERE users.id = auth.uid() AND users.role = 'admin')
+    );
+
+-- Wishlist Policies
+CREATE POLICY "Allow users to manage own wishlist" ON public.wishlist
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Notifications Policies
+CREATE POLICY "Allow users to manage own notifications" ON public.notifications
+    FOR ALL USING (auth.uid() = user_id);
+
+

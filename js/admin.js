@@ -11,7 +11,7 @@ function closeModal(modalId) {
 }
 window.closeModal = closeModal;
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function initAdmin() {
   // Check Admin Authentication
   const user = await window.supabaseAuth.requireAuth(['admin']);
   if (!user) return;
@@ -61,7 +61,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (document.getElementById("admin-settings-form")) {
     loadAdminSettingsModule();
   }
-});
+
+  if (document.getElementById("admin-users-table-body")) {
+    loadAdminUsersModule();
+  }
+
+  if (document.getElementById("admin-reports-container")) {
+    loadAdminReportsModule();
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAdmin);
+} else {
+  initAdmin();
+}
 
 // Sidebar Link Styling Sync
 function syncSidebarActiveState() {
@@ -263,7 +277,7 @@ async function loadAdminBooksModule() {
   } else {
     const { data: bData, error } = await window.supabaseClient
       .from('books')
-      .select('*')
+      .select('*, categories(category_name)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -281,7 +295,7 @@ async function loadAdminBooksModule() {
       <td><img src="${book.cover_image || '/assets/images/book-placeholder.jpg'}" style="width:35px;height:50px;object-fit:cover;border-radius:4px;"></td>
       <td><strong>${book.title}</strong><br><span style="font-size:0.8rem;color:var(--text-muted);">${book.subtitle || ''}</span></td>
       <td>${book.author}</td>
-      <td>${book.category || 'N/A'}</td>
+      <td>${book.categories?.category_name || 'N/A'}</td>
       <td>${book.views || 0}</td>
       <td>${book.downloads || 0}</td>
       <td><span class="status-pill ${book.featured ? 'approved' : 'rejected'}">${book.featured ? 'Yes' : 'No'}</span></td>
@@ -315,8 +329,8 @@ async function populateBookModalCategoryDropdown() {
   const categories = await window.supabaseDb.getCategories();
   categories.forEach(cat => {
     const opt = document.createElement("option");
-    opt.value = cat.name;
-    opt.textContent = cat.name;
+    opt.value = cat.id;
+    opt.textContent = cat.category_name;
     select.appendChild(opt);
   });
 }
@@ -424,7 +438,7 @@ async function handleBookSubmit(e) {
       title,
       subtitle,
       author,
-      category: document.getElementById("book-form-category").selectedOptions[0]?.text || "",
+      category_id: categoryId || null,
       isbn,
       publisher,
       publication_year: publicationYear,
@@ -609,3 +623,151 @@ window.openEditBookModal = openEditBookModal;
 window.handleDeleteBook = handleDeleteBook;
 window.handleDeleteCategory = handleDeleteCategory;
 window.handleDeleteMessage = handleDeleteMessage;
+
+// --- ADMIN USERS MODULE ---
+async function loadAdminUsersModule() {
+  const tbody = document.getElementById("admin-users-table-body");
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>`;
+
+  let users = [];
+  if (window.useMockData) {
+    users = [
+      { id: 'u1', full_name: 'IGA Library Admin', email: 'igalibrary@gmail.com', phone: '+91 97452 22294', role: 'admin', created_at: new Date().toISOString() },
+      { id: 'u2', full_name: 'Hafiz Finaz', email: 'finaz@wmoigacademy.com', phone: '+91 98462 12345', role: 'student', created_at: new Date().toISOString() }
+    ];
+  } else {
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      users = data || [];
+    } catch (error) {
+      showToast(error.message, "error");
+      return;
+    }
+  }
+
+  tbody.innerHTML = users.map((u, idx) => `
+    <tr>
+      <td>${idx + 1}</td>
+      <td><strong>${u.full_name || 'Anonymous'}</strong></td>
+      <td>${u.email}</td>
+      <td>${u.phone || 'N/A'}</td>
+      <td><span class="status-pill ${u.role === 'admin' ? 'approved' : 'pending'}">${u.role.toUpperCase()}</span></td>
+      <td>
+        <button onclick="toggleUserRole('${u.id}', '${u.role}')" class="btn btn-secondary" style="padding:4px 8px;font-size:0.8rem;"><i class="fas fa-user-shield"></i> Toggle Role</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function toggleUserRole(userId, currentRole) {
+  const newRole = currentRole === 'admin' ? 'student' : 'admin';
+  if (!confirm(`Are you sure you want to change this user's role to ${newRole.toUpperCase()}?`)) return;
+
+  if (window.useMockData) {
+    showToast("Role updated (mock mode)", "success");
+    loadAdminUsersModule();
+    return;
+  }
+
+  try {
+    const { error } = await window.supabaseClient
+      .from('users')
+      .update({ role: newRole })
+      .eq('id', userId);
+    if (error) throw error;
+    showToast("User role updated successfully!", "success");
+    loadAdminUsersModule();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+window.toggleUserRole = toggleUserRole;
+
+// --- ADMIN REPORTS MODULE ---
+function loadAdminReportsModule() {
+  const exportBooksBtn = document.getElementById("btn-export-books");
+  const exportUsersBtn = document.getElementById("btn-export-users");
+  const exportBackupBtn = document.getElementById("btn-export-backup");
+
+  if (exportBooksBtn) {
+    exportBooksBtn.onclick = async () => {
+      let books = [];
+      if (window.useMockData) {
+        books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+      } else {
+        const { data } = await window.supabaseClient.from('books').select('*');
+        books = data || [];
+      }
+      downloadCSV(books, 'books_catalog.csv');
+    };
+  }
+
+  if (exportUsersBtn) {
+    exportUsersBtn.onclick = async () => {
+      let users = [];
+      if (window.useMockData) {
+        users = [
+          { full_name: 'IGA Library Admin', email: 'igalibrary@gmail.com', phone: '+91 97452 22294', role: 'admin' },
+          { full_name: 'Hafiz Finaz', email: 'finaz@wmoigacademy.com', phone: '+91 98462 12345', role: 'student' }
+        ];
+      } else {
+        const { data } = await window.supabaseClient.from('users').select('*');
+        users = data || [];
+      }
+      downloadCSV(users, 'members_list.csv');
+    };
+  }
+
+  if (exportBackupBtn) {
+    exportBackupBtn.onclick = async () => {
+      let books = [], categories = [], users = [];
+      if (window.useMockData) {
+        books = JSON.parse(localStorage.getItem('mock_books') || '[]');
+        categories = JSON.parse(localStorage.getItem('mock_categories') || '[]');
+      } else {
+        const { data: b } = await window.supabaseClient.from('books').select('*');
+        const { data: c } = await window.supabaseClient.from('categories').select('*');
+        const { data: u } = await window.supabaseClient.from('users').select('*');
+        books = b || [];
+        categories = c || [];
+        users = u || [];
+      }
+      const backup = { books, categories, users, exported_at: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `library_backup_${Date.now()}.json`;
+      a.click();
+      showToast("Database backup file generated!", "success");
+    };
+  }
+}
+
+function downloadCSV(data, filename) {
+  if (data.length === 0) {
+    showToast("No data available to export", "warning");
+    return;
+  }
+  const headers = Object.keys(data[0]);
+  const rows = data.map(row => headers.map(h => {
+    let val = row[h] === null ? '' : row[h];
+    if (typeof val === 'object') val = JSON.stringify(val);
+    return `"${String(val).replace(/"/g, '""')}"`;
+  }).join(','));
+  
+  const csvContent = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  showToast("CSV report downloaded successfully!", "success");
+}

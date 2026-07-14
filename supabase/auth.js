@@ -1,6 +1,32 @@
 // Supabase Authentication Helper Logic
 
 const supabaseAuth = {
+  // Sign up a new user
+  async signUp(email, password, fullName, phone, role) {
+    if (window.useMockData) {
+      return { success: true };
+    }
+
+    try {
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone: phone,
+            role: role
+          }
+        }
+      });
+      if (error) throw error;
+      return { success: true, user: data.user };
+    } catch (error) {
+      console.error("Signup error:", error.message);
+      return { success: false, error: error.message };
+    }
+  },
+
   // Login a user
   async signIn(email, password) {
     if (window.useMockData) {
@@ -11,8 +37,14 @@ const supabaseAuth = {
         localStorage.setItem('user_email', email);
         localStorage.setItem('mock_session', 'true');
         return { success: true, user: { email, role: 'admin' } };
+      } else if (password === 'student123' || password === 'password' || email.includes('student') || email.includes('finaz')) {
+        localStorage.setItem('user_role', 'student');
+        localStorage.setItem('user_name', 'Hafiz Finaz');
+        localStorage.setItem('user_email', email);
+        localStorage.setItem('mock_session', 'true');
+        return { success: true, user: { email, role: 'student' } };
       } else {
-        return { success: false, error: "Invalid credentials in offline mode. Use: admin@wmoigacademy.com or igalibrary@gmail.com / admin123" };
+        return { success: false, error: "Invalid credentials in offline mode. Use: admin@wmoigacademy.com / admin123 (Admin) or any student email with password 'student123' (Student)" };
       }
     }
 
@@ -161,6 +193,41 @@ const supabaseAuth = {
     } catch (error) {
       console.error("Get user error:", error.message);
       return null;
+    }
+  },
+
+  // Update user profile in database
+  async updateProfile(fullName, phone, profileImage = null) {
+    if (window.useMockData) {
+      localStorage.setItem('user_name', fullName);
+      if (profileImage) {
+        localStorage.setItem('user_avatar', profileImage);
+      }
+      return { success: true };
+    }
+
+    try {
+      const { data: { user }, error: userErr } = await window.supabaseClient.auth.getUser();
+      if (userErr || !user) throw new Error("User session not found");
+
+      const updateData = {
+        full_name: fullName,
+        phone: phone
+      };
+      if (profileImage) {
+        updateData.profile_image = profileImage;
+      }
+
+      const { error } = await window.supabaseClient
+        .from('users')
+        .update(updateData)
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error("Update profile error:", error.message);
+      return { success: false, error: error.message };
     }
   },
 

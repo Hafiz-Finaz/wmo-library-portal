@@ -2,7 +2,7 @@
    WMO Imam Gazzali Academy Library - Books Feed, Detail & Reader Logic
    ========================================================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+function initBooks() {
   // If we are on the homepage, load grids and statistics
   if (document.getElementById("latest-books-grid")) {
     loadHomeGrids();
@@ -19,7 +19,13 @@ document.addEventListener("DOMContentLoaded", () => {
       closeBtn.addEventListener("click", () => closeModal(modal.id));
     }
   });
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initBooks);
+} else {
+  initBooks();
+}
 
 // Load Home Page Grids
 async function loadHomeGrids() {
